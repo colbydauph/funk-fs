@@ -1,0 +1,72 @@
+{
+  "name": "funk-fs",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">= 8.1",
+    "npm": ">= 5.1"
+  },
+  "description": "Functional Node File System Library",
+  "author": "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)",
+  "contributors": [
+    "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)"
+  ],
+  "dependencies": {
+    "bluebird": "~3.5.0",
+    "ramda": "~0.24.0"
+  },
+  "devDependencies": {
+    "chai": "~4.1.1",
+    "eslint": "~4.5.0",
+    "eslint-config-defaults": "git+ssh://git@github.com:colbydauph/eslint-config-defaults.git",
+    "mocha": "~3.5.0",
+    "nyc": "~11.1.0",
+    "sinon": "~3.2.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress",
+    "init": "rm -rf ./node_modules; npm install;",
+    "lint": "eslint --max-warnings=10 $(find . ! -path '*node_modules*' ! -path '*dist*' ! -path '*coverage*' -type f | egrep '[.]js?$') && echo '\\033[0;32mLinting - Passed\\033[0m'",
+    "start": "node .",
+    "test-watch": "mocha --reporter=min --watch $(find . ! -path '*node_modules*' -name '*.test.js')",
+    "test": "NODE_ENV=test mocha --reporter=list $(find . ! -path '*node_modules*' -name '*.test.js')",
+    "verify": "npm run init && npm run lint && npm run cover"
+  },
+  "nyc": {
+    "lines": 0,
+    "statements": 0,
+    "functions": 0,
+    "branches": 0,
+    "reporter": [
+      "html",
+      "text-summary"
+    ],
+    "watermarks": {
+      "statements": [
+        90,
+        99
+      ],
+      "branches": [
+        90,
+        99
+      ],
+      "functions": [
+        90,
+        99
+      ],
+      "lines": [
+        90,
+        99
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/colbydauph/dauphinais-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/colbydauph/dauphinais-server/issues"
+  },
+  "private": true,
+  "license": "UNLICENSED"
+}
