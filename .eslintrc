@@ -1,1 +1,1 @@
-extends: defaults/node-test
+extends: defaults/node
