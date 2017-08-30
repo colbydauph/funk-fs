@@ -4,32 +4,60 @@
 
 // core
 const path = require('path');
-const R = require('ramda');
-
-// files
-const { flatMap } = require('./async');
 
 // modules
-const Promise = require('bluebird');
+const R = require('ramda');
 
+const fromCallback = (func) => {
+  return new Promise((resolve, reject) => {
+    func((err, result) => {
+      if (err) return reject(err);
+      return resolve(result);
+    });
+  });
+};
+
+// local
+const { flatMap } = require('./async');
+
+// string -> fs -> [string]
+const readDirSync = R.curry((path, fs) => fs.readdirSync(path));
+
+// string -> fs -> string
+const readFileSync = R.curry((path, fs) => fs.readFileSync(path));
+
+// string -> fs -> bool
+const existsSync = R.curry((path, fs) => fs.existsSync(path));
+
+// string -> fs -> object
 const statSync = R.curry((filepath, fs) => fs.statSync(filepath));
-const createWriteStream = R.curry((filepath, opts, fs) => fs.createWriteStream(filepath, opts));
-const createReadStream = R.curry((filepath, fs) => fs.createReadStream(filepath));
 
 // string -> fs -> object
 const isDirSync = R.curry((filepath, fs) => statSync(filepath, fs).isDirectory());
+
+// string -> object -> fs -> stream
+const createWriteStream = R.curry((filepath, opts, fs) => fs.createWriteStream(filepath, opts));
+
+// string -> fs -> stream
+const createReadStream = R.curry((filepath, fs) => fs.createReadStream(filepath));
+
 // @async string -> fs -> object
-const stat = R.curry((filepath, fs) => Promise.fromCallback((cb) => fs.stat(filepath, cb)));
+const stat = R.curry((filepath, fs) => fromCallback((cb) => fs.stat(filepath, cb)));
+
 // @async string -> fs -> boolean
 const isDir = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isDirectory());
+
 // @async string -> fs -> string
-const readFile = R.curry((path, fs) => Promise.fromCallback((cb) => fs.readFile(path, 'utf8', cb)));
+const readFile = R.curry((path, fs) => fromCallback((cb) => fs.readFile(path, 'utf8', cb)));
+
 // @async string -> fs -> [string]
-const readDir = R.curry((path, fs) => Promise.fromCallback((cb) => fs.readdir(path, cb)));
+const readDir = R.curry((path, fs) => fromCallback((cb) => fs.readdir(path, cb)));
+
 // @async
-const writeFile = R.curry((data, filepath, fs) => Promise.fromCallback((cb) => fs.writeFile(filepath, data, cb)));
+const writeFile = R.curry((data, filepath, fs) => fromCallback((cb) => fs.writeFile(filepath, data, cb)));
+
 // @async
-const mkdirp = R.curry((path, fs) => Promise.fromCallback((cb) => fs.mkdirp(path, cb)));
+const mkdirp = R.curry((path, fs) => fromCallback((cb) => fs.mkdirp(path, cb)));
 
 // @async string -> fs -> bool
 const exists = R.curry(async (filepath, fs) => {
@@ -51,13 +79,6 @@ const readDirDeep = R.curry(async (dirPath, fs) => {
     return await readDirDeep(fullFilePath, fs);
   }, files);
 });
-
-// string -> fs -> [string]
-const readDirSync = R.curry((path, fs) => fs.readdirSync(path));
-// string -> fs -> string
-const readFileSync = R.curry((path, fs) => fs.readFileSync(path));
-// string -> fs -> bool
-const existsSync = R.curry((path, fs) => fs.existsSync(path));
 
 // const writeFiles({});
 
