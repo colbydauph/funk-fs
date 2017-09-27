@@ -90,6 +90,7 @@ module.exports = {
   isDir,
   isDirSync,
   mkdirp,
+  readDir,
   readDirDeep,
   readDirSync,
   readFile,
