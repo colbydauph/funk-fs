@@ -8,6 +8,9 @@ const path = require('path');
 // modules
 const R = require('ramda');
 
+// local
+const requireString = require('./lib/require-string');
+
 const fromCallback = (func) => {
   return new Promise((resolve, reject) => {
     func((err, result) => {
@@ -80,6 +83,18 @@ const readDirDeep = R.curry(async (dirPath, fs) => {
   }, files);
 });
 
+// @async require a module from any filesystem
+const requireFs = R.curry(async (filepath, fs) => {
+  const fileContents = (await readFile(filepath, fs)).toString();
+  return requireString(fileContents, filepath);
+});
+
+// require a module from any filesystem
+const requireSync = R.curry((filepath, fs) => {
+  const fileContents = readFileSync(filepath, fs).toString();
+  return requireString(fileContents, filepath);
+});
+
 // const writeFiles({});
 
 module.exports = {
@@ -95,6 +110,8 @@ module.exports = {
   readDirSync,
   readFile,
   readFileSync,
+  require: requireFs,
+  requireSync,
   stat,
   statSync,
   writeFile,

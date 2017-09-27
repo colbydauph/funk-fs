@@ -13,6 +13,8 @@ const {
   exists,
   mkdirp,
   readDirDeep,
+  require: requireFs,
+  requireSync,
   writeFile,
 } = require('..');
 
@@ -75,5 +77,30 @@ describe('funk-fs', () => {
     
   });
   
+  describe('require', () => {
+    
+    beforeEach('write test files', async () => {
+      await writeFile('module.exports = { success: true };', '/my-module.js', fs);
+    });
+    
+    it('should require files from the specified file system', async () => {
+      const { success } = await requireFs('/my-module.js', fs);
+      expect(success).to.eql(true);
+    });
+    
+  });
+  
+  describe('requireSync', () => {
+    
+    beforeEach('write test files', async () => {
+      await writeFile('module.exports = { success: true };', '/my-module.js', fs);
+    });
+    
+    it('should require files from the specified file system', () => {
+      const { success } = requireSync('/my-module.js', fs);
+      expect(success).to.eql(true);
+    });
+    
+  });
   
 });
