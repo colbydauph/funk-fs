@@ -5,6 +5,7 @@
 
 #### Swappable Filesystem
 All functions take a `FileSystem` as their final argument
+
 *Works with any filesystem that implements node's [`fs`](https://nodejs.org/api/fs.html) interface.  (e.g. [`memory-fs`](https://github.com/webpack/memory-fs), [`memfs`](https://github.com/simonc/memfs), [`s3fs`](https://www.npmjs.com/package/s3fs))*
 
 ```javascript
@@ -34,107 +35,107 @@ readFile(...)
 
 *Note: All arguments are required*
 
-```javascript
+```typescript
 // create a read stream from file
 createReadStream(path: String, fs: FileSystem): ReadStream
 ```
 
-```javascript
+```typescript
 // create a write stream from file
 createWriteStream(path: String, fs: FileSystem): WriteStream
 ```
 
-```javascript
+```typescript
 // does a dir exist? true if dir exists, false if is file of dir not exists
 dirExists(path: String, fs: FileSystem): Promise<Boolean>
 ```
 
-```javascript
+```typescript
 // does a file or dir exist?
 exists(path: String, fs: FileSystem): Promise<Boolean>
 ```
 
-```javascript
+```typescript
 // does a file or dir exist?
 existsSync(path: String, fs: FileSystem): Boolean
 ```
 
-```javascript
+```typescript
 // true if dir exists, throws if file or dir not exists
 isDir(path: String, fs: FileSystem): Promise<Boolean>
 ```
 
-```javascript
+```typescript
 // true if dir exists, throws if file or dir not exists
 isDirSync(path: String, fs: FileSystem): Boolean
 ```
 
-```javascript
+```typescript
 // true if file exists, throws if dir or file not exists
 isFile(path: String, fs: FileSystem): Promise<Boolean>
 ```
 
-```javascript
+```typescript
 // recursively create folders
 mkdirp(path: String, fs: FileSystem): Promise<undefined>
 ```
 
-```javascript
+```typescript
 // list file names in dir
 readDir(path: String, fs: FileSystem): Promise<String[]>
 ```
 
-```javascript
+```typescript
 // list file names in dir and all sub dirs
 readDirDeep(path: String, fs: FileSystem): Promise<String[]>
 ```
 
-```javascript
+```typescript
 // list file names in dir
 readDirSync(path: String, fs: FileSystem): String[]
 ```
 
-```javascript
+```typescript
 // read file contents
 readFile(path: String, fs: FileSystem): Promise<Buffer>
 ```
 
-```javascript
+```typescript
 // read file contents
 readFileSync(path: String, fs: FileSystem): Buffer
 ```
 
-```javascript
+```typescript
 // read nested dir structure as tree
 readTree(path: String, fs: FileSystem): Promise<Object>
 ```
 
-```javascript
+```typescript
 // require a javascript module
 require(path: String, fs: FileSystem): Promise<Any>
 ```
 
-```javascript
+```typescript
 // require a javascript module
 requireSync(path: String, fs: FileSystem): Any
 ```
 
-```javascript
+```typescript
 // get file / dir statistics
 stat(path: String, fs: FileSystem): Promise<Object>
 ```
 
-```javascript
+```typescript
 // get file / dir statistics
 statSync(path: String, fs: FileSystem): Object
 ```
 
-```javascript
+```typescript
 // write data to a file
 writeFile(content: String, path: String, fs: FileSystem): Promise<undefined>
 ```
 
-```javascript
+```typescript
 // write nested files and dir structures
 writeTree(path: String, tree: Object, fs: FileSystem): Promise<undefined>
 ```

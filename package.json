@@ -5,7 +5,7 @@
     "node": ">= 8.1",
     "npm": ">= 5.1"
   },
-  "description": "Functional Node File System Library",
+  "description": "Functional File System Utilities for Node.js",
   "author": "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)",
   "contributors": [
     "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)"
