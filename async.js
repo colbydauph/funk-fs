@@ -17,4 +17,11 @@ const flatMap = R.curry(async (pred, iterable) => {
   return [].concat(...arrs);
 });
 
-module.exports = { flatMap };
+// @async (parallel)
+// predicate -> iterable -> iterable
+const forEach = R.curry(async (pred, iterable) => {
+  await Promise.all(iterable.map((item) => pred(item)));
+  return iterable;
+});
+
+module.exports = { map, flatMap, forEach };

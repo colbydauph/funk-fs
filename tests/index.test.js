@@ -10,12 +10,17 @@ const { expect } = require('chai');
 const { toString: streamToString } = require('../stream');
 const {
   createReadStream,
+  dirExists,
   exists,
+  isDir,
   mkdirp,
   readDirDeep,
+  readFile,
+  readTree,
   require: requireFs,
   requireSync,
   writeFile,
+  writeTree,
 } = require('..');
 
 describe('funk-fs', () => {
@@ -59,6 +64,30 @@ describe('funk-fs', () => {
     
   });
   
+  describe('dirExists', () => {
+    
+    beforeEach('write files', async () => {
+      await writeTree('/', {
+        one: {
+          'test.txt': '1',
+        },
+      }, fs);
+    });
+    
+    it('should return true if dir exists', async () => {
+      expect(await dirExists('/one', fs)).to.eql(true);
+    });
+    
+    it('should return false if dir does not exist', async () => {
+      expect(await dirExists('/two', fs)).to.eql(false);
+    });
+    
+    it('should return false if path is file', async () => {
+      expect(await dirExists('/two/test.txt', fs)).to.eql(false);
+    });
+
+  });
+  
   describe('readDirDeep', () => {
     
     beforeEach('write test files', async () => {
@@ -99,6 +128,114 @@ describe('funk-fs', () => {
     it('should require files from the specified file system', () => {
       const { success } = requireSync('/my-module.js', fs);
       expect(success).to.eql(true);
+    });
+    
+  });
+  
+  describe('readTree', () => {
+    
+    beforeEach('write tree', async () => {
+      await writeTree('/', {
+        one: '1',
+        two: '2',
+        three: '3',
+        four: {
+          five: '6',
+          six: { seven: '8' },
+        },
+      }, fs);
+    });
+    
+    it('should read all files in a dir', async () => {
+      const tree = await readTree('/', fs);
+
+      expect(tree.one).to.eql('1');
+      expect(tree.two).to.eql('2');
+      expect(tree.three).to.eql('3');
+    });
+    
+    it('should read recursively', async () => {
+      const tree = await readTree('/', fs);
+      expect(tree.four.five).to.eql('6');
+      expect(tree.four.six).to.eql({ seven: '8' });
+    });
+    
+  });
+  
+  describe('writeTree', () => {
+    
+    it('should write strings', async () => {
+      const tree = {
+        'text-file-1.txt': 'one',
+        'text-file-2.jpg': 'two',
+        'text-file-3.png': 'three',
+      };
+      await writeTree('/', tree, fs);
+      expect(`${ await readFile('/text-file-1.txt', fs) }`).to.eql('one');
+      expect(`${ await readFile('/text-file-2.jpg', fs) }`).to.eql('two');
+      expect(`${ await readFile('/text-file-3.png', fs) }`).to.eql('three');
+    });
+    
+    it('should recursively create subdirs', async () => {
+      const tree = {
+        one: {},
+        two: {
+          three: {
+            four: {},
+          },
+        },
+      };
+      await writeTree('/', tree, fs);
+      expect(await isDir('/one', fs)).to.eql(true);
+      expect(await isDir('/two', fs)).to.eql(true);
+      expect(await isDir('/two/three', fs)).to.eql(true);
+      expect(await isDir('/two/three/four', fs)).to.eql(true);
+    });
+    
+    it('should recurisvely write files', async () => {
+      const tree = {
+        one: '1',
+        two: {
+          three: '3',
+          four: {
+            five: '5',
+          },
+        },
+      };
+      await writeTree('/', tree, fs);
+      expect(`${ await readFile('/one', fs) }`).to.eql('1');
+      expect(`${ await readFile('/two/three', fs) }`).to.eql('3');
+      expect(`${ await readFile('/two/four/five', fs) }`).to.eql('5');
+    });
+    
+    it('should be complementary to writeFile', async () => {
+      const treeIn = {
+        bin: {
+          bash: {
+            node: 'test',
+          },
+        },
+      };
+      await writeTree('/', treeIn, fs);
+      const treeOut = await readTree('/', fs);
+      expect(treeIn).to.eql(treeOut);
+    });
+    
+    it('should throw if dir content written to existing file', async () => {
+      await writeFile('content', '/test', fs);
+      const tree = {
+        test: {
+          one: 'two',
+        },
+      };
+      let error;
+      try {
+        await writeTree('/', tree, fs);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).to.be.an.instanceOf(Error);
     });
     
   });
