@@ -4,15 +4,20 @@
 const Stream = require('stream');
 
 // modules
-const MemoryFs = require('memory-fs');
+const { Volume } = require('memfs');
 const { expect } = require('chai');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
+// local
 const { toString: streamToString } = require('../stream');
 const {
   createReadStream,
   dirExists,
   exists,
   isDir,
+  isFile,
+  mkdir,
   mkdirp,
   readDirDeep,
   readFile,
@@ -23,11 +28,14 @@ const {
   writeTree,
 } = require('..');
 
+// add chai-as-promised middleware
+chai.use(chaiAsPromised);
+
 describe('funk-fs', () => {
   
   let fs;
-  beforeEach(() => {
-    fs = new MemoryFs();
+  beforeEach('create in-memory fs', () => {
+    fs = Volume.fromJSON({});
   });
   
   describe('createReadStream', () => {
@@ -88,6 +96,71 @@ describe('funk-fs', () => {
 
   });
   
+  describe('isFile', () => {
+    
+    it('should return true if path is file', async () => {
+      await writeFile('data', '/test', fs);
+      expect(await isFile('/test', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is a dir', async () => {
+      await mkdir('/test', fs);
+      expect(await isFile('/test', fs)).to.eql(false);
+    });
+    
+    it('should throw if nothing at path', async () => {
+      await expect(isFile('/test', fs)).to.eventually.be.rejectedWith(Error);
+    });
+    
+  });
+  
+  describe('isDir', () => {
+    
+    it('should return true if path is a dir', async () => {
+      await mkdir('/test', fs);
+      expect(await isDir('/test', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is a file', async () => {
+      await writeFile('data', '/test', fs);
+      expect(await isDir('/test', fs)).to.eql(false);
+    });
+    
+    it('should throw if nothing at path', async () => {
+      await expect(isDir('/test', fs)).to.eventually.be.rejectedWith(Error);
+    });
+    
+  });
+  
+  describe('mkdirp', () => {
+    
+    it('should make dirs a single level deep', async () => {
+      const dir = '/test-dir-123';
+      await mkdirp(dir, fs);
+      expect(await dirExists(dir, fs)).to.eql(true);
+    });
+    
+    it('should make intermediate dirs', async () => {
+      const dir = '/some/deep/test/dir';
+      await mkdirp(dir, fs);
+      expect(await dirExists('/some/deep', fs)).to.eql(true);
+    });
+    
+    it('should make dirs of arbitrary depth', async () => {
+      const dir = '/some/deep/test/dir';
+      await mkdirp(dir, fs);
+      expect(await dirExists(dir, fs)).to.eql(true);
+    });
+    
+    it('should not throw if an intermediate dir exists', async () => {
+      await mkdirp('/some', fs);
+      await mkdirp('/some/other', fs);
+      await mkdirp('/some/other/test-dir', fs);
+      expect(await dirExists('/some/other/test-dir', fs)).to.eql(true);
+    });
+    
+  });
+  
   describe('readDirDeep', () => {
     
     beforeEach('write test files', async () => {
@@ -98,10 +171,9 @@ describe('funk-fs', () => {
     
     it('should traverse subdirs infinitely deep', async () => {
       const files = await readDirDeep('/some', fs);
-      expect(files).to.eql([
-        '/some/very/deep/test/dir/file.ext',
-        '/some/test-file.ext',
-      ]);
+      expect(files.length).to.eql(2);
+      expect(files).to.contain('/some/test-file.ext');
+      expect(files).to.contain('/some/very/deep/test/dir/file.ext');
     });
     
   });

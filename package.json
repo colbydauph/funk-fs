@@ -11,16 +11,17 @@
     "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)"
   ],
   "dependencies": {
-    "ramda": "~0.24.0"
+    "ramda": "~0.25.0"
   },
   "devDependencies": {
-    "chai": "~4.1.1",
-    "eslint": "~4.5.0",
-    "eslint-config-defaults": "git+ssh://git@github.com:colbydauph/eslint-config-defaults.git",
-    "memory-fs": "~0.4.1",
-    "mocha": "~3.5.0",
-    "nyc": "~11.1.0",
-    "sinon": "~3.2.1"
+    "chai": "~4.1.2",
+    "chai-as-promised": "~7.1.1",
+    "eslint": "~4.12.0",
+    "eslint-config-defaults": "colbydauph/eslint-config-defaults#1.0.0",
+    "memfs": "~2.6.0",
+    "mocha": "~4.0.1",
+    "nyc": "~11.3.0",
+    "sinon": "~4.1.2"
   },
   "main": "index.js",
   "scripts": {
