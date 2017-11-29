@@ -5,7 +5,6 @@
 // core
 const nodeFs = require('fs');
 const path = require('path');
-const { promisify } = require('util');
 
 // modules
 const R = require('ramda');
@@ -144,8 +143,8 @@ const mkdtemp = R.curry((prefix, fs) => fromCallback((cb) => fs.mkdtemp(prefix, 
 const mkdtempSync = R.curry((prefix, fs) => fs.mkdtempSync(prefix, { /* opts */ }));
 
 // @async
-const open = R.curry((path, flags, fs) => fromCallback((cb) => fs.open(path, flags, 0o666, cb)));
-const openSync = R.curry((path, flags, fs) => fs.open(path, flags, 0o666));
+const open = R.curry((flags, path, fs) => fromCallback((cb) => fs.open(path, flags, 0o666, cb)));
+const openSync = R.curry((flags, path, fs) => fs.open(path, flags, 0o666));
 
 // @async
 // todo: fix promisification
@@ -196,14 +195,14 @@ const unlinkSync = R.curry((path, fs) => fs.unlink(path));
 const unwatchFile = R.curry((filename, fs) => fs.unwatchFile(filename));
 
 // @async
-const utimes = R.curry((path, atime, mtime, fs) => fromCallback((cb) => fs.utimes(path, atime, mtime, cb)));
-const utimesSync = R.curry((path, atime, mtime, fs) => fs.utimesSync(path, atime, mtime));
+const utimes = R.curry((atime, mtime, path, fs) => fromCallback((cb) => fs.utimes(path, atime, mtime, cb)));
+const utimesSync = R.curry((atime, mtime, path, fs) => fs.utimesSync(path, atime, mtime));
 
 // todo: add listener arg
 const watch = R.curry((filename, fs) => fs.watch(filename, { /* opts */ }));
 
 // todo: add listener arg
-const watchFile = R.curry((filename, fs) => fs.watchFile(filename, { /* opts */ }));
+const watchFile = R.curry((listener, filename, fs) => fs.watchFile(filename, { /* opts */ }, listener));
 
 // @async
 // todo: fix this

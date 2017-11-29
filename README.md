@@ -3,42 +3,47 @@
 
 ## Features
 
-#### Swappable Filesystem
-All functions take a `FileSystem` as their final argument, and will work with any filesystem that implements node's [`fs`](https://nodejs.org/api/fs.html) interface.
-(e.g. [`memfs`](https://github.com/simonc/memfs), [`fs-extra`](https://github.com/jprichardson/node-fs-extra), [`level-fs`](https://github.com/juliangruber/level-fs), [`s3fs`](https://www.npmjs.com/package/s3fs))
+#### Filesystem Agnostic
+Functions are designed to work with any filesystem that implements Node's [`fs`](https://nodejs.org/api/fs.html) interface.
+(e.g. [`memfs`](https://github.com/simonc/memfs), [`fs-extra`](https://github.com/jprichardson/node-fs-extra), [`level-fs`](https://github.com/juliangruber/level-fs),[`unionfs`](https://github.com/streamich/unionfs),[`s3fs`](https://www.npmjs.com/package/s3fs))
 
 
 ```javascript
 const fs = require('fs');
-readFile('/', fs);
+const files = await readDir('/', fs);
+```
+
+```javascript
+const memfs = require('memfs').Volume.fromJSON({});
+const files = await readDir('/', memfs);
 ```
 
 #### Curried
 Functions allow partial application of one or more arguments
 
 ```javascript
-const readIcon = readFile('/icon.ico');
-readIcon(fs1);
-readIcon(fs2);
+const iconExists = fileExists('/icon.ico');
+await iconExists(fs1);
+await iconExists(fs2);
 ```
 
-#### Promised-based Async
-Async functions expose a promise-based interface
+#### Promise-based Async
+Async functions expose a promise-based interface. 
 
-*This also has the effect of making async / sync function arguments symetrical*
+*This also has the effect of making async / sync function arguments symmetrical*
 
 ```javascript
-// file = await readFile('data.txt')
-readFile('data.txt')
-  .then((file) => {})
-  .catch((err) => {});
+// async
+const dataExists = await fileExists('data.txt', fs);
+// sync
+const dataExists = fileExistsSync('data.txt', fs);
 ```
 
 
 ## API
 *Note: All arguments are required*
 
-*Note: argument order differs from node fs functions to foster useful partial-application.*
+The order of arguments for many functions differ from those in [Node's `fs` module](https://nodejs.org/api/fs.html). Arguments are arranged "data-last" to promote useful partial-application.
 
 See [`nodejs.org/api/fs`](https://nodejs.org/api/fs.html) for more thorough documentation, and alternate argument types.
 
@@ -54,12 +59,12 @@ appendFile(file: String, data: String, fs: FileSystem): undefined
 
 #### `chmod` / `chmodSync`
 ```typescript
-chmod(mode: Number, path: String, fs: FileSystem): undefined
+chmod(mode: Integer, path: String, fs: FileSystem): undefined
 ```
 
 #### `chown` / `chownSync`
 ```typescript
-chown(uid: Number, gid: Number, path: String, fs: FileSystem):
+chown(uid: Number, gid: Number, path: String, fs: FileSystem): undefined
 ```
 
 #### `close` / `closeSync`
@@ -69,7 +74,7 @@ close(fd: Number, fs: FileSystem): undefined
 
 #### `copyFile` / `copyFileSync`
 ```typescript
-copyFile():
+copyFile(src: String, dest: String, fs: FileSystem): undefined
 ```
 
 #### `createReadStream`
@@ -123,12 +128,12 @@ fsync(fd: Number, fs: FileSystem): undefined
 
 #### `ftruncate` / `ftruncateSync`
 ```typescript
-ftruncate():
+ftruncate(fd: Number, fs: FileSystem): undefined
 ```
 
 #### `futimes` / `futimesSync`
 ```typescript
-futimes(fd: Number, atime: Date, mtime: Date): undefined
+futimes(fd: Number, atime: Date, mtime: Date, fs: FileSystem): undefined
 ```
 
 #### `isDir` / `isDirSync`
@@ -155,17 +160,17 @@ lchown(uid: Number, gid: Number, path: String, fs: FileSystem): undefined
 
 #### `link` / `linkSync`
 ```typescript
-link():
+link(existingPath: String, newPath: String, fs: FileSystem): undefined
 ```
 
 #### `lstat` / `lstatSync`
 ```typescript
-lstat(): fs.Stats
+lstat(path: String): fs.Stats
 ```
 
 #### `mkdir` / `mkdirSync`
 ```typescript
-mkdir():
+mkdir(path: String, fs: FileSystem): undefined
 ```
 
 #### `mkdirp` / `mkdirpSync`
@@ -176,12 +181,12 @@ mkdirp(path: String, fs: FileSystem): undefined
 
 #### `mkdtemp` / `mkdtempSync`
 ```typescript
-mkdtemp():
+mkdtemp(prefix: String, fs: FileSystem): String
 ```
 
 #### `open` / `openSync`
 ```typescript
-open():
+open(flags: String, path: String, fs: FileSystem): Number
 ```
 
 #### `read` / `readSync`
@@ -209,7 +214,7 @@ readFile(path: String, fs: FileSystem): Buffer
 
 #### `readLink` / `readLinkSync`
 ```typescript
-readLink():
+readLink(path: String, fs: FileSystem): String
 ```
 
 #### `readTree` / `readTreeSync`
@@ -220,12 +225,12 @@ readTree(path: String, fs: FileSystem): Object
 
 #### `realPath` / `realPathSync`
 ```typescript
-realPath():
+realPath(path: String, fs: FileSystem): String
 ```
 
 #### `rename` / `renameSync`
 ```typescript
-rename():
+rename(oldPath: String, newPath: String, fs: FileSystem): undefined
 ```
 
 #### `require` / `requireSync`
@@ -236,7 +241,7 @@ require(path: String, fs: FileSystem): Any
 
 #### `rmDir` / `rmDirSync`
 ```typescript
-rmDir():
+rmDir(path: String, fs: FileSystem): undefined
 ```
 
 #### `stat` / `statSync`
@@ -246,47 +251,47 @@ stat(path: String, fs: FileSystem): fs.Stats
 
 #### `symlink` / `symlinkSync`
 ```typescript
-symlink():
+symlink(target: String, path: String, fs: FileSystem): undefined
 ```
 
 #### `truncate` / `truncateSync`
 ```typescript
-truncate():
+truncate(path: String, fs: FileSystem): undefined
 ```
 
 #### `unlink` / `unlinkSync`
 ```typescript
-unlink():
+unlink(path: String, fs: FileSystem): undefined
 ```
 
 #### `unwatchFile`
 ```typescript
-unwatchFile():
+unwatchFile(filename: String, fs: FileSystem): String
 ```
 
 #### `utimes` / `utimesSync`
 ```typescript
-utimes():
+utimes(atime: Date, mtime: Date, path: String, fs: FileSystem): undefined
 ```
 
 #### `watch`
 ```typescript
-watch():
+watch()
 ```
 
 #### `watchFile`
 ```typescript
-watchFile():
+watchFile(listener: Function, filename: String, fs: FileSystem):
 ```
 
 #### `write` / `writeSync`
 ```typescript
-write():
+write()
 ```
 
 #### `writeFile` / `writeFileSync`
 ```typescript
-writeFile(content: String, path: String, fs: FileSystem): undefined
+writeFile(data: String, file: String, fs: FileSystem): undefined
 ```
 
 #### `writeTree` / `writeTreeSync`
