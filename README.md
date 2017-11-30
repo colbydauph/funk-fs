@@ -2,25 +2,38 @@
 ### Functional File System Utilities for Node.js
 
 ## Contents
+- [Usage](#usage)
 - [Features](#features)
-- [Api](#api)
-  - [Core](#core)
-  - [Extra](#extra)
+- [Api](#api) ([Core](#core), [Extra](#extra))
+
+
+## Usage
+```shell
+$ npm i -P colbydauph/funk-fs
+```
+
+```javascript
+const { readFile, readFileSync } = require('funk-fs');
+```
+
+----
 
 ## Features
 
 #### Filesystem Agnostic
 Functions are designed to work with any filesystem that implements Node's [`fs`](https://nodejs.org/api/fs.html) interface.
-(e.g. [`memfs`](https://github.com/simonc/memfs), [`fs-extra`](https://github.com/jprichardson/node-fs-extra), [`level-fs`](https://github.com/juliangruber/level-fs),[`unionfs`](https://github.com/streamich/unionfs),[`s3fs`](https://www.npmjs.com/package/s3fs))
+
+*(e.g. [`memfs`](https://github.com/simonc/memfs), [`fs-extra`](https://github.com/jprichardson/node-fs-extra), [`level-fs`](https://github.com/juliangruber/level-fs),[`unionfs`](https://github.com/streamich/unionfs),[`s3fs`](https://www.npmjs.com/package/s3fs))*
 
 
 ```javascript
-// core
 const fs = require('fs');
-const files = await readDir('/', fs);
-
-// 3rd-party
 const memfs = require('memfs').Volume.fromJSON({});
+const { readFile, readFileSync } = require('funk-fs');
+
+// core
+const files = await readDir('/', fs);
+// 3rd-party
 const files = await readDir('/', memfs);
 ```
 
@@ -29,9 +42,13 @@ Functions can have their arguments partially applied to create useful intermedia
 *See [`Ramda.curry`](http://ramdajs.com/docs/#curry).*
 
 ```javascript
-const iconExists = fileExists('/icon.ico');
-await iconExists(fs1);
-await iconExists(fs2);
+const fs = require('fs');
+const { readFile } = require('funk-fs');
+
+const readData = readFile('/data.txt');
+
+await readData(fs1);
+await readData(fs2);
 ```
 
 #### Promise-based Async
@@ -40,10 +57,13 @@ Async functions expose a promise-based interface.
 *This also has the effect of making async / sync function arguments symmetrical*
 
 ```javascript
+const fs = require('fs');
+const { fileExists, fileExistsSync } = require('funk-fs');
+
 // async
-const dataExists = await fileExists('data.txt', fs);
+await fileExists('data.txt', fs);
 // sync
-const dataExists = fileExistsSync('data.txt', fs);
+fileExistsSync('data.txt', fs);
 ```
 
 ----
