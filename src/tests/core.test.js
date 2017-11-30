@@ -23,7 +23,7 @@ const { mkdirp } = require('../extra');
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
 
-describe('funk-fs', () => {
+describe('core functions', () => {
   
   let fs;
   beforeEach('create in-memory fs', () => {

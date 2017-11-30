@@ -34,9 +34,9 @@
     "verify": "npm run init && npm run lint && npm run cover"
   },
   "nyc": {
-    "lines": 80,
-    "statements": 80,
-    "functions": 65,
+    "lines": 60,
+    "statements": 60,
+    "functions": 30,
     "branches": 75,
     "reporter": [
       "html",

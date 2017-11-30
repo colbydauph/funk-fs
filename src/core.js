@@ -118,7 +118,6 @@ const open = R.curry((flags, path, fs) => fromCallback((cb) => fs.open(path, fla
 const openSync = R.curry((flags, path, fs) => fs.open(path, flags, 0o666));
 
 // @async
-// todo: fix promisification
 // eslint-disable-next-line max-params, max-len
 const read = R.curry((fd, buffer, offset, length, position, fs) => fromCallback((cb) => fs.read(fd, buffer, offset, length, position, cb)));
 // eslint-disable-next-line max-params

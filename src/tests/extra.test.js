@@ -32,7 +32,7 @@ const {
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
 
-describe('funk-fs', () => {
+describe('extra functions', () => {
   
   let fs;
   beforeEach('create in-memory fs', () => {
