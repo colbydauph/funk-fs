@@ -9,8 +9,10 @@ const chaiAsPromised = require('chai-as-promised');
 // local
 const {
   dirExists,
+  dirExistsSync,
   exists,
   fileExists,
+  fileExistsSync,
   isDir,
   isDirSync,
   isFile,
@@ -81,6 +83,30 @@ describe('funk-fs', () => {
 
   });
   
+  describe('dirExistsSync', () => {
+    
+    beforeEach('write files', async () => {
+      await writeTree('/', {
+        one: {
+          'test.txt': '1',
+        },
+      }, fs);
+    });
+    
+    it('should return true if dir exists', () => {
+      expect(dirExistsSync('/one', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is empty', () => {
+      expect(dirExistsSync('/two', fs)).to.eql(false);
+    });
+    
+    it('should return false if path is file', () => {
+      expect(dirExistsSync('/two/test.txt', fs)).to.eql(false);
+    });
+
+  });
+  
   describe('fileExists', () => {
     
     beforeEach('write files', async () => {
@@ -101,6 +127,28 @@ describe('funk-fs', () => {
     });
 
   });
+  
+  describe('fileExistsSync', () => {
+    
+    beforeEach('write files', async () => {
+      await writeFile('test-text', '/one.txt', fs);
+    });
+    
+    it('should return true if file exists', () => {
+      expect(fileExistsSync('/one.txt', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is empty', () => {
+      expect(fileExistsSync('/two.txt', fs)).to.eql(false);
+    });
+    
+    it('should return false if path is a dir', async () => {
+      await mkdir('/one', fs);
+      expect(fileExistsSync('/one', fs)).to.eql(false);
+    });
+
+  });
+  
   
   describe('isFile', () => {
     

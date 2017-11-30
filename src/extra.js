@@ -58,6 +58,7 @@ const requireSync = R.curry((filepath, fs) => {
   return requireString(fileContents, filepath);
 });
 
+
 // string -> fs -> boolean
 const dirExists = R.curry(async (dirpath, fs) => {
   try {
@@ -67,11 +68,30 @@ const dirExists = R.curry(async (dirpath, fs) => {
     throw err;
   }
 });
+// string -> fs -> boolean
+const dirExistsSync = R.curry((dirpath, fs) => {
+  try {
+    return isDirSync(dirpath, fs);
+  } catch (err) {
+    if (err.code === 'ENOENT') return false;
+    throw err;
+  }
+});
+
 
 // string -> fs -> boolean
 const fileExists = R.curry(async (filepath, fs) => {
   try {
     return await isFile(filepath, fs);
+  } catch (err) {
+    if (err.code === 'ENOENT') return false;
+    throw err;
+  }
+});
+// string -> fs -> boolean
+const fileExistsSync = R.curry((filepath, fs) => {
+  try {
+    return isFileSync(filepath, fs);
   } catch (err) {
     if (err.code === 'ENOENT') return false;
     throw err;
@@ -118,7 +138,9 @@ const readTree = R.curry(async (root, fs) => {
 
 module.exports = {
   dirExists,
+  dirExistsSync,
   fileExists,
+  fileExistsSync,
   isDir,
   isDirSync,
   isFile,
