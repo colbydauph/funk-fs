@@ -10,7 +10,6 @@ const chaiAsPromised = require('chai-as-promised');
 const {
   dirExists,
   dirExistsSync,
-  exists,
   fileExists,
   fileExistsSync,
   isDir,
@@ -19,14 +18,13 @@ const {
   isFileSync,
   mkdir,
   mkdirp,
-  mkdirSync,
+  mkdirpSync,
   readDirDeep,
   readFile,
   readTree,
   require: requireFs,
-  requireSync,
+  requireSync: requireFsSync,
   writeFile,
-  writeFileSync,
   writeTree,
 } = require('..');
 
@@ -39,27 +37,8 @@ describe('funk-fs', () => {
   beforeEach('create in-memory fs', () => {
     fs = Volume.fromJSON({});
   });
-  
-  describe('exists', () => {
     
-    beforeEach('write test files', async () => {
-      await mkdirp('/a/b/c/', fs);
-      await writeFile('test-file-content', '/a/b/c/test-file.txt', fs);
-    });
-    
-    it('should return true when file exists', async () => {
-      const result = await exists('/a/b/c/test-file.txt', fs);
-      expect(result).to.eql(true);
-    });
-    
-    it('should return false when file does not exist', async () => {
-      const result = await exists('/some/fake/file.txt', fs);
-      expect(result).to.eql(false);
-    });
-    
-  });
-  
-  describe('dirExists', () => {
+  describe('dirExists / dirExistsSync', () => {
     
     beforeEach('write files', async () => {
       await writeTree('/', {
@@ -71,43 +50,22 @@ describe('funk-fs', () => {
     
     it('should return true if dir exists', async () => {
       expect(await dirExists('/one', fs)).to.eql(true);
+      expect(dirExistsSync('/one', fs)).to.eql(true);
     });
     
     it('should return false if path is empty', async () => {
       expect(await dirExists('/two', fs)).to.eql(false);
+      expect(dirExistsSync('/two', fs)).to.eql(false);
     });
     
     it('should return false if path is file', async () => {
       expect(await dirExists('/two/test.txt', fs)).to.eql(false);
-    });
-
-  });
-  
-  describe('dirExistsSync', () => {
-    
-    beforeEach('write files', async () => {
-      await writeTree('/', {
-        one: {
-          'test.txt': '1',
-        },
-      }, fs);
-    });
-    
-    it('should return true if dir exists', () => {
-      expect(dirExistsSync('/one', fs)).to.eql(true);
-    });
-    
-    it('should return false if path is empty', () => {
-      expect(dirExistsSync('/two', fs)).to.eql(false);
-    });
-    
-    it('should return false if path is file', () => {
       expect(dirExistsSync('/two/test.txt', fs)).to.eql(false);
     });
 
   });
   
-  describe('fileExists', () => {
+  describe('fileExists / fileExistsSync', () => {
     
     beforeEach('write files', async () => {
       await writeFile('test-text', '/one.txt', fs);
@@ -115,138 +73,114 @@ describe('funk-fs', () => {
     
     it('should return true if file exists', async () => {
       expect(await fileExists('/one.txt', fs)).to.eql(true);
+      expect(fileExistsSync('/one.txt', fs)).to.eql(true);
     });
     
     it('should return false if path is empty', async () => {
       expect(await fileExists('/two.txt', fs)).to.eql(false);
-    });
-    
-    it('should return false if path is a dir', async () => {
-      await mkdir('/one', fs);
-      expect(await fileExists('/one', fs)).to.eql(false);
-    });
-
-  });
-  
-  describe('fileExistsSync', () => {
-    
-    beforeEach('write files', async () => {
-      await writeFile('test-text', '/one.txt', fs);
-    });
-    
-    it('should return true if file exists', () => {
-      expect(fileExistsSync('/one.txt', fs)).to.eql(true);
-    });
-    
-    it('should return false if path is empty', () => {
       expect(fileExistsSync('/two.txt', fs)).to.eql(false);
     });
     
     it('should return false if path is a dir', async () => {
       await mkdir('/one', fs);
+      expect(await fileExists('/one', fs)).to.eql(false);
       expect(fileExistsSync('/one', fs)).to.eql(false);
     });
 
   });
-  
-  
-  describe('isFile', () => {
+    
+  describe('isFile / isFileSync', () => {
     
     it('should return true if path is file', async () => {
       await writeFile('data', '/test', fs);
+      
       expect(await isFile('/test', fs)).to.eql(true);
+      expect(isFileSync('/test', fs)).to.eql(true);
     });
     
     it('should return false if path is a dir', async () => {
       await mkdir('/test', fs);
+      
       expect(await isFile('/test', fs)).to.eql(false);
+      expect(isFileSync('/test', fs)).to.eql(false);
     });
     
     it('should throw if nothing at path', async () => {
       await expect(isFile('/test', fs)).to.eventually.be.rejectedWith(Error);
-    });
-    
-  });
-  
-  describe('isFileSync', () => {
-    
-    it('should return true if path is file', () => {
-      writeFileSync('data', '/test', fs);
-      expect(isFileSync('/test', fs)).to.eql(true);
-    });
-    
-    it('should return false if path is a dir', () => {
-      mkdirSync('/test', fs);
-      expect(isFileSync('/test', fs)).to.eql(false);
-    });
-    
-    it('should throw if nothing at path', () => {
       expect(() => isFileSync('/test', fs)).to.throw(Error);
     });
     
   });
   
-  describe('isDir', () => {
+  describe('isDir / isDirSync', () => {
     
     it('should return true if path is a dir', async () => {
       await mkdir('/test', fs);
+      
       expect(await isDir('/test', fs)).to.eql(true);
+      expect(isDirSync('/test', fs)).to.eql(true);
     });
     
     it('should return false if path is a file', async () => {
       await writeFile('data', '/test', fs);
+      
       expect(await isDir('/test', fs)).to.eql(false);
+      expect(isDirSync('/test', fs)).to.eql(false);
     });
     
     it('should throw if nothing at path', async () => {
       await expect(isDir('/test', fs)).to.eventually.be.rejectedWith(Error);
-    });
-    
-  });
-  
-  describe('isDirSync', () => {
-    
-    it('should return true if path is a dir', () => {
-      mkdirSync('/test', fs);
-      expect(isDirSync('/test', fs)).to.eql(true);
-    });
-    
-    it('should return false if path is a file', () => {
-      writeFileSync('data', '/test', fs);
-      expect(isDirSync('/test', fs)).to.eql(false);
-    });
-    
-    it('should throw if nothing at path', () => {
       expect(() => isDirSync('/test', fs)).to.throw(Error);
     });
     
   });
   
-  describe('mkdirp', () => {
+  describe('mkdirp / mkdirpSync', () => {
     
     it('should make dirs a single level deep', async () => {
       const dir = '/test-dir-123';
+      const dirSync = '/test-dir-123-sync';
+      
       await mkdirp(dir, fs);
+      mkdirpSync(dirSync, fs);
+      
       expect(await dirExists(dir, fs)).to.eql(true);
+      expect(dirExistsSync(dirSync, fs)).to.eql(true);
     });
     
     it('should make intermediate dirs', async () => {
       const dir = '/some/deep/test/dir';
+      const dirSync = '/sync/deep/test/dir';
+      
       await mkdirp(dir, fs);
+      mkdirpSync(dirSync, fs);
+      
       expect(await dirExists('/some/deep', fs)).to.eql(true);
+      expect(dirExistsSync('/sync/deep', fs)).to.eql(true);
     });
     
     it('should make dirs of arbitrary depth', async () => {
       const dir = '/some/deep/test/dir';
+      const dirSync = '/sync/deep/test/dir';
+      
       await mkdirp(dir, fs);
+      mkdirpSync(dirSync, fs);
+      
       expect(await dirExists(dir, fs)).to.eql(true);
+      expect(dirExistsSync(dirSync, fs)).to.eql(true);
     });
     
     it('should not throw if an intermediate dir exists', async () => {
       await mkdirp('/some', fs);
       await mkdirp('/some/other', fs);
       await mkdirp('/some/other/test-dir', fs);
+      
+      mkdirpSync('/sync', fs);
+      mkdirpSync('/sync/other', fs);
+      mkdirpSync('/sync/other/test-dir', fs);
+      
       expect(await dirExists('/some/other/test-dir', fs)).to.eql(true);
+      expect(dirExistsSync('/sync/other/test-dir', fs)).to.eql(true);
     });
     
   });
@@ -268,28 +202,15 @@ describe('funk-fs', () => {
     
   });
   
-  describe('require', () => {
+  describe('require / requireSync', () => {
     
     beforeEach('write test files', async () => {
       await writeFile('module.exports = { success: true };', '/my-module.js', fs);
     });
     
     it('should require files from the specified file system', async () => {
-      const { success } = await requireFs('/my-module.js', fs);
-      expect(success).to.eql(true);
-    });
-    
-  });
-  
-  describe('requireSync', () => {
-    
-    beforeEach('write test files', async () => {
-      await writeFile('module.exports = { success: true };', '/my-module.js', fs);
-    });
-    
-    it('should require files from the specified file system', () => {
-      const { success } = requireSync('/my-module.js', fs);
-      expect(success).to.eql(true);
+      await expect(requireFs('/my-module.js', fs)).to.eventually.eql({ success: true });
+      expect(requireFsSync('/my-module.js', fs)).to.eql({ success: true });
     });
     
   });

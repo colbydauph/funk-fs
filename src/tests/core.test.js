@@ -12,9 +12,13 @@ const chaiAsPromised = require('chai-as-promised');
 // local
 const { toString: streamToString } = require('../../lib/stream');
 const {
+  exists,
+  existsSync,
   createReadStream,
   writeFile,
-} = require('..');
+} = require('../core');
+
+const { mkdirp } = require('../extra');
 
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
@@ -41,4 +45,23 @@ describe('funk-fs', () => {
     
   });
     
+  describe('exists / existsSync', () => {
+    
+    beforeEach('write test files', async () => {
+      await mkdirp('/a/b/c/', fs);
+      await writeFile('test-file-content', '/a/b/c/test-file.txt', fs);
+    });
+    
+    it('should return true when file exists', async () => {
+      await expect(exists('/a/b/c/test-file.txt', fs)).to.eventually.eql(true);
+      expect(existsSync('/a/b/c/test-file.txt', fs)).to.eql(true);
+    });
+    
+    it('should return false when file does not exist', async () => {
+      await expect(exists('/some/fake/file.txt', fs)).to.eventually.eql(false);
+      expect(existsSync('/some/fake/file.txt', fs)).to.eql(false);
+    });
+    
+  });
+  
 });

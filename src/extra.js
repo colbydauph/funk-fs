@@ -1,16 +1,17 @@
 'use strict';
 
 // core
-const path = require('path');
+const { dirname, join: joinPath } = require('path');
 
 // modules
 const R = require('ramda');
 
 // local
 const { forEach, map, flatMap } = require('../lib/async');
-const fromCallback = require('../lib/from-callback');
 const requireString = require('../lib/require-string');
 const {
+  mkdir,
+  mkdirSync,
   readDir,
   readFile,
   readFileSync,
@@ -29,18 +30,36 @@ const isFile = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isFile
 // string -> fs -> boolean
 const isFileSync = R.curry((filepath, fs) => statSync(filepath, fs).isFile());
 
-// @async
-// todo: rewrite witout fs.mkdirp
-const mkdirp = R.curry((path, fs) => fromCallback((cb) => fs.mkdirp(path, cb)));
+// @async string -> fs -> undefined
+const mkdirp = R.curry(async (path, fs) => {
+  try {
+    return await mkdir(path, fs);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+    // recursively make parent dir
+    await mkdirp(dirname(path), fs);
+    // retry original
+    return await mkdirp(path, fs);
+  }
+});
+// string -> fs -> undefined
 const mkdirpSync = R.curry((path, fs) => {
-  throw Error('mkdirpSync not implemented');
+  try {
+    return mkdirSync(path, fs);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+    // recursively make parent dir
+    mkdirpSync(dirname(path), fs);
+    // retry original
+    return mkdirpSync(path, fs);
+  }
 });
 
 // @async string -> fs -> [string]
 const readDirDeep = R.curry(async (dirPath, fs) => {
   const files = await readDir(dirPath, fs);
   return flatMap(async (file) => {
-    const fullFilePath = path.join(dirPath, file);
+    const fullFilePath = joinPath(dirPath, file);
     if (!await isDir(fullFilePath, fs)) return fullFilePath;
     return await readDirDeep(fullFilePath, fs);
   }, files);
@@ -102,7 +121,7 @@ const fileExistsSync = R.curry((filepath, fs) => {
 const writeTree = R.curry(async (root, tree, fs) => {
   // eslint-disable-next-line max-statements
   await forEach(async ([filepath, value]) => {
-    const absFilepath = path.join(root, filepath);
+    const absFilepath = joinPath(root, filepath);
     const hasChildren = (typeof value === 'object');
     // todo: does an empty object write an empty dir?
     let fileIsDir = await dirExists(absFilepath, fs);
@@ -124,7 +143,7 @@ const readTree = R.curry(async (root, fs) => {
   const files = await readDir(root, fs);
   
   const filesPairs = await map(async (filepath) => {
-    const absFilepath = path.join(root, filepath);
+    const absFilepath = joinPath(root, filepath);
     
     const res = (await dirExists(absFilepath, fs))
       ? await readTree(absFilepath, fs)
