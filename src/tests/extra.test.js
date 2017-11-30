@@ -1,8 +1,5 @@
 'use strict';
 
-// core
-const Stream = require('stream');
-
 // modules
 const { Volume } = require('memfs');
 const { expect } = require('chai');
@@ -10,21 +7,24 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
 // local
-const { toString: streamToString } = require('../stream');
 const {
-  createReadStream,
   dirExists,
   exists,
+  fileExists,
   isDir,
+  isDirSync,
   isFile,
+  isFileSync,
   mkdir,
   mkdirp,
+  mkdirSync,
   readDirDeep,
   readFile,
   readTree,
   require: requireFs,
   requireSync,
   writeFile,
+  writeFileSync,
   writeTree,
 } = require('..');
 
@@ -36,21 +36,6 @@ describe('funk-fs', () => {
   let fs;
   beforeEach('create in-memory fs', () => {
     fs = Volume.fromJSON({});
-  });
-  
-  describe('createReadStream', () => {
-    
-    beforeEach('write test files', async () => {
-      await writeFile('test-file-content', '/test-file', fs);
-    });
-    
-    it('should return a stream reading from the file specified', async () => {
-      const stream = createReadStream('/test-file', fs);
-      expect(stream).to.be.an.instanceOf(Stream);
-      const fileContents = await streamToString(stream);
-      expect(fileContents).to.eql('test-file-content');
-    });
-    
   });
   
   describe('exists', () => {
@@ -86,12 +71,33 @@ describe('funk-fs', () => {
       expect(await dirExists('/one', fs)).to.eql(true);
     });
     
-    it('should return false if dir does not exist', async () => {
+    it('should return false if path is empty', async () => {
       expect(await dirExists('/two', fs)).to.eql(false);
     });
     
     it('should return false if path is file', async () => {
       expect(await dirExists('/two/test.txt', fs)).to.eql(false);
+    });
+
+  });
+  
+  describe('fileExists', () => {
+    
+    beforeEach('write files', async () => {
+      await writeFile('test-text', '/one.txt', fs);
+    });
+    
+    it('should return true if file exists', async () => {
+      expect(await fileExists('/one.txt', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is empty', async () => {
+      expect(await fileExists('/two.txt', fs)).to.eql(false);
+    });
+    
+    it('should return false if path is a dir', async () => {
+      await mkdir('/one', fs);
+      expect(await fileExists('/one', fs)).to.eql(false);
     });
 
   });
@@ -114,6 +120,24 @@ describe('funk-fs', () => {
     
   });
   
+  describe('isFileSync', () => {
+    
+    it('should return true if path is file', () => {
+      writeFileSync('data', '/test', fs);
+      expect(isFileSync('/test', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is a dir', () => {
+      mkdirSync('/test', fs);
+      expect(isFileSync('/test', fs)).to.eql(false);
+    });
+    
+    it('should throw if nothing at path', () => {
+      expect(() => isFileSync('/test', fs)).to.throw(Error);
+    });
+    
+  });
+  
   describe('isDir', () => {
     
     it('should return true if path is a dir', async () => {
@@ -128,6 +152,24 @@ describe('funk-fs', () => {
     
     it('should throw if nothing at path', async () => {
       await expect(isDir('/test', fs)).to.eventually.be.rejectedWith(Error);
+    });
+    
+  });
+  
+  describe('isDirSync', () => {
+    
+    it('should return true if path is a dir', () => {
+      mkdirSync('/test', fs);
+      expect(isDirSync('/test', fs)).to.eql(true);
+    });
+    
+    it('should return false if path is a file', () => {
+      writeFileSync('data', '/test', fs);
+      expect(isDirSync('/test', fs)).to.eql(false);
+    });
+    
+    it('should throw if nothing at path', () => {
+      expect(() => isDirSync('/test', fs)).to.throw(Error);
     });
     
   });

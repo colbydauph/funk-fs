@@ -25,7 +25,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress",
+    "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress || { echo \"\\033[0;32mview coverage\\033[0m\" `pwd`/coverage/index.html; exit 1; }",
     "init": "rm -rf ./node_modules; npm install;",
     "lint": "eslint --max-warnings=10 $(find . ! -path '*node_modules*' ! -path '*dist*' ! -path '*coverage*' -type f | egrep '[.]js?$') && echo '\\033[0;32mLinting - Passed\\033[0m'",
     "start": "node .",

@@ -1,6 +1,12 @@
 # funk-fs
 ### Functional File System Utilities for Node.js
 
+## Contents
+- [Features](#features)
+- [Api](#api)
+  - [Core](#core)
+  - [Extra](#extra)
+
 ## Features
 
 #### Filesystem Agnostic
@@ -9,17 +15,18 @@ Functions are designed to work with any filesystem that implements Node's [`fs`]
 
 
 ```javascript
+// core
 const fs = require('fs');
 const files = await readDir('/', fs);
-```
 
-```javascript
+// 3rd-party
 const memfs = require('memfs').Volume.fromJSON({});
 const files = await readDir('/', memfs);
 ```
 
 #### Curried
-Functions allow partial application of one or more arguments
+Functions can have their arguments partially applied to create useful intermediate functions.
+*See [`Ramda.curry`](http://ramdajs.com/docs/#curry).*
 
 ```javascript
 const iconExists = fileExists('/icon.ico');
@@ -41,11 +48,15 @@ const dataExists = fileExistsSync('data.txt', fs);
 
 
 ## API
-*Note: All arguments are required*
+All arguments are required
 
 The order of arguments for many functions differ from those in [Node's `fs` module](https://nodejs.org/api/fs.html). Arguments are arranged "data-last" to promote useful partial-application.
 
 See [`nodejs.org/api/fs`](https://nodejs.org/api/fs.html) for more thorough documentation, and alternate argument types.
+
+
+### Core
+Core functions mirroring [Node's `fs` module](https://nodejs.org/api/fs.html).
 
 #### `access` / `accessSync`
 ```typescript
@@ -59,7 +70,7 @@ appendFile(file: String, data: String, fs: FileSystem): undefined
 
 #### `chmod` / `chmodSync`
 ```typescript
-chmod(mode: Integer, path: String, fs: FileSystem): undefined
+chmod(mode: Number, path: String, fs: FileSystem): undefined
 ```
 
 #### `chown` / `chownSync`
@@ -87,12 +98,6 @@ createReadStream(path: String, fs: FileSystem): ReadStream
 ```typescript
 // create a write stream from file
 createWriteStream(path: String, fs: FileSystem): WriteStream
-```
-
-#### `dirExists` / `dirExistsSync`
-```typescript
-// does a dir exist? true if dir exists, false if is file, or dir not exists
-dirExists(path: String, fs: FileSystem): Boolean
 ```
 
 #### `exists` / `existsSync`
@@ -136,18 +141,6 @@ ftruncate(fd: Number, fs: FileSystem): undefined
 futimes(fd: Number, atime: Date, mtime: Date, fs: FileSystem): undefined
 ```
 
-#### `isDir` / `isDirSync`
-```typescript
-// true if dir exists, throws if file, or dir not exists
-isDir(path: String, fs: FileSystem): Boolean
-```
-
-#### `isFile` / `isFileSync`
-```typescript
-// true if file exists, throws if dir or file not exists
-isFile(path: String, fs: FileSystem): Boolean
-```
-
 #### `lchmod` / `lchmodSync`
 ```typescript
 lchmod(mode: Number, path: String, fs: FileSystem): undefined
@@ -173,12 +166,6 @@ lstat(path: String): fs.Stats
 mkdir(path: String, fs: FileSystem): undefined
 ```
 
-#### `mkdirp` / `mkdirpSync`
-```typescript
-// recursively create folders
-mkdirp(path: String, fs: FileSystem): undefined
-```
-
 #### `mkdtemp` / `mkdtempSync`
 ```typescript
 mkdtemp(prefix: String, fs: FileSystem): String
@@ -200,12 +187,6 @@ read():
 readDir(path: String, fs: FileSystem): String[]
 ```
 
-#### `readDirDeep` / `readDirDeepSync`
-```typescript
-// list file names in dir and all sub dirs
-readDirDeep(path: String, fs: FileSystem): String[]
-```
-
 #### `readFile` / `readFileSync`
 ```typescript
 // read file contents
@@ -217,15 +198,9 @@ readFile(path: String, fs: FileSystem): Buffer
 readLink(path: String, fs: FileSystem): String
 ```
 
-#### `readTree` / `readTreeSync`
+#### `realpath` / `realpathSync`
 ```typescript
-// read nested dir structure as tree
-readTree(path: String, fs: FileSystem): Object
-```
-
-#### `realPath` / `realPathSync`
-```typescript
-realPath(path: String, fs: FileSystem): String
+realpath(path: String, fs: FileSystem): String
 ```
 
 #### `rename` / `renameSync`
@@ -233,13 +208,7 @@ realPath(path: String, fs: FileSystem): String
 rename(oldPath: String, newPath: String, fs: FileSystem): undefined
 ```
 
-#### `require` / `requireSync`
-```typescript
-// require a javascript module
-require(path: String, fs: FileSystem): Any
-```
-
-#### `rmDir` / `rmDirSync`
+#### `rmdir` / `rmdirSync`
 ```typescript
 rmDir(path: String, fs: FileSystem): undefined
 ```
@@ -292,6 +261,57 @@ write()
 #### `writeFile` / `writeFileSync`
 ```typescript
 writeFile(data: String, file: String, fs: FileSystem): undefined
+```
+
+### Extra
+Additional functions for useful filesystem operations.
+
+#### `dirExists` / `dirExistsSync`
+```typescript
+// does a dir exist? true if dir exists, false if not dir, or path not exists
+dirExists(path: String, fs: FileSystem): Boolean
+```
+
+#### `fileExists` / `fileExistsSync`
+```typescript
+// does a file exist? true if file exists, false if not file, or path not exists
+fileExists(path: String, fs: FileSystem): Boolean
+```
+
+#### `mkdirp` / `mkdirpSync`
+```typescript
+// recursively create folders
+mkdirp(path: String, fs: FileSystem): undefined
+```
+
+#### `isDir` / `isDirSync`
+```typescript
+// true if dir exists, throws if file, or dir not exists
+isDir(path: String, fs: FileSystem): Boolean
+```
+
+#### `isFile` / `isFileSync`
+```typescript
+// true if file exists, throws if dir or file not exists
+isFile(path: String, fs: FileSystem): Boolean
+```
+
+#### `readDirDeep` / `readDirDeepSync`
+```typescript
+// list file names in dir and all sub dirs
+readDirDeep(path: String, fs: FileSystem): String[]
+```
+
+#### `readTree` / `readTreeSync`
+```typescript
+// read nested dir structure as tree
+readTree(path: String, fs: FileSystem): Object
+```
+
+#### `require` / `requireSync`
+```typescript
+// require a javascript module
+require(path: String, fs: FileSystem): Any
 ```
 
 #### `writeTree` / `writeTreeSync`

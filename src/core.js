@@ -4,24 +4,12 @@
 
 // core
 const nodeFs = require('fs');
-const path = require('path');
 
 // modules
 const R = require('ramda');
 
 // local
-const { forEach, map, flatMap } = require('./async');
-const requireString = require('./lib/require-string');
-
-const fromCallback = (func) => {
-  return new Promise((resolve, reject) => {
-    func((err, result) => {
-      if (err) return reject(err);
-      return resolve(result);
-    });
-  });
-};
-
+const fromCallback = require('../lib/from-callback');
 
 // @async string -> fs -> object
 const stat = R.curry((filepath, fs) => fromCallback((cb) => fs.stat(filepath, cb)));
@@ -101,16 +89,6 @@ const ftruncateSync = R.curry((fd, fs) => fs.ftruncateSync(fd, 0));
 const futimes = R.curry((fd, atime, mtime, fs) => fromCallback((cb) => fs.futimes(fd, atime, mtime, cb)));
 const futimesSync = R.curry((fd, atime, mtime, fs) => fs.futimesSync(fd, atime, mtime));
 
-// @async string -> fs -> boolean
-const isDir = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isDirectory());
-// string -> fs -> object
-const isDirSync = R.curry((filepath, fs) => statSync(filepath, fs).isDirectory());
-
-// @async string -> fs -> boolean
-const isFile = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isFile());
-// string -> fs -> boolean
-const isFileSync = R.curry((filepath, fs) => statSync(filepath, fs).isFile());
-
 // @async
 const lchmod = R.curry((mode, path, fs) => fromCallback((cb) => fs.lchmod(path, mode, cb)));
 const lchmodSync = R.curry((mode, path, fs) => fs.lchmodSync(path, mode));
@@ -130,13 +108,6 @@ const lstatSync = R.curry((path, fs) => fs.lstatSync(path));
 // @async
 const mkdir = R.curry((path, fs) => fromCallback((cb) => fs.mkdir(path, 0o777, cb)));
 const mkdirSync = R.curry((path, fs) => fs.mkdirSync(path, 0o777));
-
-// @async
-// todo: rewrite witout fs.mkdirp
-const mkdirp = R.curry((path, fs) => fromCallback((cb) => fs.mkdirp(path, cb)));
-const mkdirpSync = R.curry((path, fs) => {
-  throw Error('mkdirpSync not implemented');
-});
 
 // @async
 const mkdtemp = R.curry((prefix, fs) => fromCallback((cb) => fs.mkdtemp(prefix, { /* opts */ }, cb)));
@@ -168,16 +139,16 @@ const readLink = R.curry((path, fs) => fromCallback((cb) => fs.readLink(path, { 
 const readLinkSync = R.curry((path, fs) => fs.readLinkSync(path, { /* opts */ }));
 
 // @async
-const realPath = R.curry((path, fs) => fromCallback((cb) => fs.realPath(path, { /* opts */ }, cb)));
-const realPathSync = R.curry((path, fs) => fs.realPathSync(path, { /* opts */ }));
+const realpath = R.curry((path, fs) => fromCallback((cb) => fs.realpath(path, { /* opts */ }, cb)));
+const realpathSync = R.curry((path, fs) => fs.realpathSync(path, { /* opts */ }));
 
 // @async
 const rename = R.curry((oldPath, newPath, fs) => fromCallback((cb) => fs.rename(oldPath, newPath, cb)));
 const renameSync = R.curry((oldPath, newPath, fs) => fs.renameSync(oldPath, newPath));
 
 // @async
-const rmDir = R.curry((path, fs) => fromCallback((cb) => fs.rmDir(path, cb)));
-const rmDirSync = R.curry((path, fs) => fs.rmDirSync(path));
+const rmdir = R.curry((path, fs) => fromCallback((cb) => fs.rmdir(path, cb)));
+const rmdirSync = R.curry((path, fs) => fs.rmdirSync(path));
 
 // @async
 const symlink = R.curry((target, path, fs) => fromCallback((cb) => fs.symlink(target, path, 'file', cb)));
@@ -205,94 +176,17 @@ const watch = R.curry((filename, fs) => fs.watch(filename, { /* opts */ }));
 const watchFile = R.curry((listener, filename, fs) => fs.watchFile(filename, { /* opts */ }, listener));
 
 // @async
-// todo: fix this
-const write = R.curry(() => {});
-// todo: fix this
-const writeSync = R.curry(() => {});
+// todo: fix these
+const write = R.curry(() => {
+  throw Error('write not implemented');
+});
+const writeSync = R.curry(() => {
+  throw Error('writeSync not implemented');
+});
 
 // @async
 const writeFile = R.curry((data, file, fs) => fromCallback((cb) => fs.writeFile(file, data, { /* opts */ }, cb)));
 const writeFileSync = R.curry((data, file, fs) => fs.writeFileSync(file, data, { /* opts */ }));
-
-
-// @async string -> fs -> [string]
-const readDirDeep = R.curry(async (dirPath, fs) => {
-  const files = await readDir(dirPath, fs);
-  return flatMap(async (file) => {
-    const fullFilePath = path.join(dirPath, file);
-    if (!await isDir(fullFilePath, fs)) return fullFilePath;
-    return await readDirDeep(fullFilePath, fs);
-  }, files);
-});
-
-// @async require a module from any filesystem
-const requireFs = R.curry(async (filepath, fs) => {
-  const fileContents = (await readFile(filepath, fs)).toString();
-  return requireString(fileContents, filepath);
-});
-
-// require a module from any filesystem
-const requireSync = R.curry((filepath, fs) => {
-  const fileContents = readFileSync(filepath, fs).toString();
-  return requireString(fileContents, filepath);
-});
-
-// string -> fs -> boolean
-const dirExists = R.curry(async (dirpath, fs) => {
-  try {
-    return await isDir(dirpath, fs);
-  } catch (err) {
-    if (err.code === 'ENOENT') return false;
-    throw err;
-  }
-});
-
-// string -> fs -> boolean
-const fileExists = R.curry(async (filepath, fs) => {
-  try {
-    return await isFile(filepath, fs);
-  } catch (err) {
-    if (err.code === 'ENOENT') return false;
-    throw err;
-  }
-});
-
-// string -> object -> fs -> undefined
-const writeTree = R.curry(async (root, tree, fs) => {
-  // eslint-disable-next-line max-statements
-  await forEach(async ([filepath, value]) => {
-    const absFilepath = path.join(root, filepath);
-    const hasChildren = (typeof value === 'object');
-    
-    let fileIsDir = await dirExists(absFilepath, fs);
-
-    if (hasChildren && !fileIsDir) {
-      await mkdirp(absFilepath, fs);
-      fileIsDir = true;
-    }
-  
-    if (!fileIsDir && hasChildren) throw Error('Cannot write dir to file');
-    if (fileIsDir) return writeTree(absFilepath, value, fs);
-    await writeFile(value, absFilepath, fs);
-  }, R.toPairs(tree));
-});
-
-// string -> fs -> object
-// todo: use async/mapObjValues
-const readTree = R.curry(async (root, fs) => {
-  const files = await readDir(root, fs);
-  
-  const filesPairs = await map(async (filepath) => {
-    const absFilepath = path.join(root, filepath);
-    
-    const res = (await dirExists(absFilepath, fs))
-      ? await readTree(absFilepath, fs)
-      : await readFile(absFilepath, fs);
-
-    return [filepath, res];
-  }, files);
-  return R.fromPairs(filesPairs);
-});
 
 module.exports = {
   access,
@@ -310,7 +204,6 @@ module.exports = {
   copyFileSync,
   createReadStream,
   createWriteStream,
-  dirExists,
   exists,
   existsSync,
   fchmod,
@@ -319,7 +212,6 @@ module.exports = {
   fchownSync,
   fdatasync,
   fdatasyncSync,
-  fileExists,
   fstat,
   fstatSync,
   fsync,
@@ -328,10 +220,6 @@ module.exports = {
   ftruncateSync,
   futimes,
   futimesSync,
-  isDir,
-  isDirSync,
-  isFile,
-  isFileSync,
   lchmod,
   lchmodSync,
   lchown,
@@ -341,8 +229,6 @@ module.exports = {
   lstat,
   lstatSync,
   mkdir,
-  mkdirp,
-  mkdirpSync,
   mkdirSync,
   mkdtemp,
   mkdtempSync,
@@ -350,23 +236,18 @@ module.exports = {
   openSync,
   read,
   readDir,
-  readDirDeep,
   readDirSync,
   readFile,
   readFileSync,
   readLink,
   readLinkSync,
   readSync,
-  readTree,
-  realPath,
-  realPathSync,
+  realpath,
+  realpathSync,
   rename,
   renameSync,
-  require: requireFs,
-  requireFs,
-  requireSync,
-  rmDir,
-  rmDirSync,
+  rmdir,
+  rmdirSync,
   stat,
   statSync,
   symlink,
@@ -384,5 +265,4 @@ module.exports = {
   writeFile,
   writeFileSync,
   writeSync,
-  writeTree,
 };
