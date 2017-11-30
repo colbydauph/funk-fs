@@ -22,7 +22,7 @@
     "nyc": "~11.3.0",
     "sinon": "~4.1.2"
   },
-  "main": "index.js",
+  "main": "src",
   "scripts": {
     "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress || { echo \"\\033[0;32mview coverage\\033[0m\" `pwd`/coverage/index.html; exit 1; }",
     "init": "rm -rf ./node_modules; npm install;",
