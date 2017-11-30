@@ -137,21 +137,16 @@ const readTree = R.curry(async (root, fs) => {
 
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
+  if (!await dirExists(root, fs)) await mkdir(root, fs);
+  
   // eslint-disable-next-line max-statements
   await forEach(async ([filepath, value]) => {
     const absFilepath = joinPath(root, filepath);
-    const hasChildren = (typeof value === 'object');
-    
-    let fileIsDir = await dirExists(absFilepath, fs);
 
-    if (hasChildren && !fileIsDir) {
-      await mkdirp(absFilepath, fs);
-      fileIsDir = true;
-    }
-  
-    if (!fileIsDir && hasChildren) throw Error('Cannot write dir to file');
-    if (fileIsDir) return writeTree(absFilepath, value, fs);
-    await writeFile(value, absFilepath, fs);
+    return (typeof value === 'object')
+      ? writeTree(absFilepath, value, fs)
+      : writeFile(value, absFilepath, fs);
+
   }, R.toPairs(tree));
 });
 

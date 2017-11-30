@@ -295,7 +295,7 @@ describe('extra functions', () => {
       expect(`${ await readFile('/two/four/five', fs) }`).to.eql('5');
     });
     
-    it('should be complementary to writeFile', async () => {
+    it('should be complementary to readTree', async () => {
       const treeIn = {
         bin: {
           bash: {
@@ -315,16 +315,21 @@ describe('extra functions', () => {
           one: 'two',
         },
       };
-      let error;
-      try {
-        await writeTree('/', tree, fs);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(error).to.be.an.instanceOf(Error);
+      await expect(writeTree('/', tree, fs)).to.eventually.be.rejectedWith(Error);
+    });
+  
+    it('should create target dir if it does not exist', async () => {
+      const tree = { one: 'two' };
+      await writeTree('/test-dir', tree, fs);
+      expect(await isDir('/test-dir', fs)).to.eql(true);
     });
     
+    // todo: should this use mkdirp logic instead?
+    it('should throw if parent dir does not exist', async () => {
+      const tree = { one: 'two' };
+      await expect(writeTree('/fake/dir', tree, fs)).to.eventually.be.rejectedWith(Error);
+    });
+  
   });
   
 });
