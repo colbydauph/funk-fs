@@ -20,6 +20,7 @@ const {
   mkdirp,
   mkdirpSync,
   readDirDeep,
+  readDirDeepSync,
   readFile,
   readTree,
   require: requireFs,
@@ -185,7 +186,7 @@ describe('funk-fs', () => {
     
   });
   
-  describe('readDirDeep', () => {
+  describe('readDirDeep / readDirDeepSync', () => {
     
     beforeEach('write test files', async () => {
       await mkdirp('/some/very/deep/test/dir', fs);
@@ -194,10 +195,13 @@ describe('funk-fs', () => {
     });
     
     it('should traverse subdirs infinitely deep', async () => {
-      const files = await readDirDeep('/some', fs);
-      expect(files.length).to.eql(2);
-      expect(files).to.contain('/some/test-file.ext');
-      expect(files).to.contain('/some/very/deep/test/dir/file.ext');
+      const expected = [
+        '/some/test-file.ext',
+        '/some/very/deep/test/dir/file.ext',
+      ];
+      
+      await expect(readDirDeep('/some', fs)).to.eventually.eql(expected);
+      expect(readDirDeepSync('/some', fs)).to.eql(expected);
     });
     
   });

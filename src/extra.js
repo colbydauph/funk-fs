@@ -13,6 +13,7 @@ const {
   mkdir,
   mkdirSync,
   readDir,
+  readDirSync,
   readFile,
   readFileSync,
   stat,
@@ -20,17 +21,15 @@ const {
   writeFile,
 } = require('./core');
 
-// @async string -> fs -> boolean
+// string -> fs -> boolean
 const isDir = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isDirectory());
-// string -> fs -> object
 const isDirSync = R.curry((filepath, fs) => statSync(filepath, fs).isDirectory());
 
-// @async string -> fs -> boolean
-const isFile = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isFile());
 // string -> fs -> boolean
+const isFile = R.curry(async (filepath, fs) => (await stat(filepath, fs)).isFile());
 const isFileSync = R.curry((filepath, fs) => statSync(filepath, fs).isFile());
 
-// @async string -> fs -> undefined
+// string -> fs -> undefined
 const mkdirp = R.curry(async (path, fs) => {
   try {
     return await mkdir(path, fs);
@@ -42,7 +41,6 @@ const mkdirp = R.curry(async (path, fs) => {
     return await mkdirp(path, fs);
   }
 });
-// string -> fs -> undefined
 const mkdirpSync = R.curry((path, fs) => {
   try {
     return mkdirSync(path, fs);
@@ -55,7 +53,7 @@ const mkdirpSync = R.curry((path, fs) => {
   }
 });
 
-// @async string -> fs -> [string]
+// string -> fs -> [string]
 const readDirDeep = R.curry(async (dirPath, fs) => {
   const files = await readDir(dirPath, fs);
   return flatMap(async (file) => {
@@ -64,19 +62,25 @@ const readDirDeep = R.curry(async (dirPath, fs) => {
     return await readDirDeep(fullFilePath, fs);
   }, files);
 });
+const readDirDeepSync = R.curry((dirPath, fs) => {
+  const files = readDirSync(dirPath, fs);
+  const fileArrs = files.map((file) => {
+    const fullFilePath = joinPath(dirPath, file);
+    if (!isDirSync(fullFilePath, fs)) return fullFilePath;
+    return readDirDeepSync(fullFilePath, fs);
+  });
+  return [].concat(...fileArrs);
+});
 
-// @async string -> fs -> *
+// string -> fs -> *
 const requireFs = R.curry(async (filepath, fs) => {
   const fileContents = (await readFile(filepath, fs)).toString();
   return requireString(fileContents, filepath);
 });
-
-// string -> fs -> *
-const requireSync = R.curry((filepath, fs) => {
+const requireFsSync = R.curry((filepath, fs) => {
   const fileContents = readFileSync(filepath, fs).toString();
   return requireString(fileContents, filepath);
 });
-
 
 // string -> fs -> boolean
 const dirExists = R.curry(async (dirpath, fs) => {
@@ -87,7 +91,6 @@ const dirExists = R.curry(async (dirpath, fs) => {
     throw err;
   }
 });
-// string -> fs -> boolean
 const dirExistsSync = R.curry((dirpath, fs) => {
   try {
     return isDirSync(dirpath, fs);
@@ -96,7 +99,6 @@ const dirExistsSync = R.curry((dirpath, fs) => {
     throw err;
   }
 });
-
 
 // string -> fs -> boolean
 const fileExists = R.curry(async (filepath, fs) => {
@@ -107,7 +109,6 @@ const fileExists = R.curry(async (filepath, fs) => {
     throw err;
   }
 });
-// string -> fs -> boolean
 const fileExistsSync = R.curry((filepath, fs) => {
   try {
     return isFileSync(filepath, fs);
@@ -115,26 +116,6 @@ const fileExistsSync = R.curry((filepath, fs) => {
     if (err.code === 'ENOENT') return false;
     throw err;
   }
-});
-
-// string -> object -> fs -> undefined
-const writeTree = R.curry(async (root, tree, fs) => {
-  // eslint-disable-next-line max-statements
-  await forEach(async ([filepath, value]) => {
-    const absFilepath = joinPath(root, filepath);
-    const hasChildren = (typeof value === 'object');
-    // todo: does an empty object write an empty dir?
-    let fileIsDir = await dirExists(absFilepath, fs);
-
-    if (hasChildren && !fileIsDir) {
-      await mkdirp(absFilepath, fs);
-      fileIsDir = true;
-    }
-  
-    if (!fileIsDir && hasChildren) throw Error('Cannot write dir to file');
-    if (fileIsDir) return writeTree(absFilepath, value, fs);
-    await writeFile(value, absFilepath, fs);
-  }, R.toPairs(tree));
 });
 
 // string -> fs -> object
@@ -154,6 +135,25 @@ const readTree = R.curry(async (root, fs) => {
   return R.fromPairs(filesPairs);
 });
 
+// string -> object -> fs -> undefined
+const writeTree = R.curry(async (root, tree, fs) => {
+  // eslint-disable-next-line max-statements
+  await forEach(async ([filepath, value]) => {
+    const absFilepath = joinPath(root, filepath);
+    const hasChildren = (typeof value === 'object');
+    
+    let fileIsDir = await dirExists(absFilepath, fs);
+
+    if (hasChildren && !fileIsDir) {
+      await mkdirp(absFilepath, fs);
+      fileIsDir = true;
+    }
+  
+    if (!fileIsDir && hasChildren) throw Error('Cannot write dir to file');
+    if (fileIsDir) return writeTree(absFilepath, value, fs);
+    await writeFile(value, absFilepath, fs);
+  }, R.toPairs(tree));
+});
 
 module.exports = {
   dirExists,
@@ -167,9 +167,9 @@ module.exports = {
   mkdirp,
   mkdirpSync,
   readDirDeep,
+  readDirDeepSync,
   readTree,
   require: requireFs,
-  requireFs,
-  requireSync,
+  requireSync: requireFsSync,
   writeTree,
 };
