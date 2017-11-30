@@ -256,7 +256,7 @@ watchFile(listener: Function, filename: String, fs: FileSystem):
 
 #### `write` / `writeSync`
 ```typescript
-write()
+// not implemented
 ```
 
 #### `writeFile` / `writeFileSync`
