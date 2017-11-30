@@ -2,8 +2,7 @@
   "name": "funk-fs",
   "version": "0.2.0",
   "engines": {
-    "node": ">= 8.1",
-    "npm": ">= 5.1"
+    "node": ">= 8.2"
   },
   "description": "Functional File System Utilities for Node.js",
   "author": "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)",

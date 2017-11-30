@@ -46,6 +46,7 @@ const dataExists = await fileExists('data.txt', fs);
 const dataExists = fileExistsSync('data.txt', fs);
 ```
 
+----
 
 ## API
 All arguments are required
@@ -178,7 +179,7 @@ open(flags: String, path: String, fs: FileSystem): Number
 
 #### `read` / `readSync`
 ```typescript
-read():
+read(fd: Number, buffer: Buffer, offset: Number, length: Number, position: Number, fs: FileS): Object
 ```
 
 #### `readDir` / `readDirSync`
@@ -245,7 +246,7 @@ utimes(atime: Date, mtime: Date, path: String, fs: FileSystem): undefined
 
 #### `watch`
 ```typescript
-watch()
+// not implemented
 ```
 
 #### `watchFile`
@@ -267,55 +268,55 @@ writeFile(data: String, file: String, fs: FileSystem): undefined
 Additional functions for useful filesystem operations.
 
 #### `dirExists` / `dirExistsSync`
+Does a directory exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
-// does a dir exist? true if dir exists, false if not dir, or path not exists
 dirExists(path: String, fs: FileSystem): Boolean
 ```
 
 #### `fileExists` / `fileExistsSync`
+Does a file exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
-// does a file exist? true if file exists, false if not file, or path not exists
 fileExists(path: String, fs: FileSystem): Boolean
 ```
 
 #### `mkdirp` / `mkdirpSync`
+Recursively create folders at any depth
 ```typescript
-// recursively create folders
 mkdirp(path: String, fs: FileSystem): undefined
 ```
 
 #### `isDir` / `isDirSync`
+Is the target path a directory? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
-// true if dir exists, throws if file, or dir not exists
 isDir(path: String, fs: FileSystem): Boolean
 ```
 
 #### `isFile` / `isFileSync`
+Is the target path a file? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
-// true if file exists, throws if dir or file not exists
 isFile(path: String, fs: FileSystem): Boolean
 ```
 
 #### `readDirDeep` / `readDirDeepSync`
+List files in a directory and all child directories
 ```typescript
-// list file names in dir and all sub dirs
 readDirDeep(path: String, fs: FileSystem): String[]
 ```
 
 #### `readTree` / `readTreeSync`
+Read a directory of any depth into an object. Inverse of `writeTree`
 ```typescript
-// read nested dir structure as tree
 readTree(path: String, fs: FileSystem): Object
 ```
 
 #### `require` / `requireSync`
+Require a JavaScript module
 ```typescript
-// require a javascript module
 require(path: String, fs: FileSystem): Any
 ```
 
 #### `writeTree` / `writeTreeSync`
+Write a directory structure of any depth from an object. Inverse of `readTree`
 ```typescript
-// write nested files and dir structures
 writeTree(path: String, tree: Object, fs: FileSystem): undefined
 ```
