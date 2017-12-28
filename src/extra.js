@@ -7,7 +7,7 @@ const { dirname, join: joinPath } = require('path');
 const R = require('ramda');
 
 // local
-const { forEach, map, flatMap } = require('../lib/async');
+const { forEach, map, flatMap, mapObjValues } = require('../lib/async');
 const requireString = require('../lib/require-string');
 const {
   mkdir,
@@ -119,21 +119,23 @@ const fileExistsSync = R.curry((filepath, fs) => {
 });
 
 // string -> fs -> object
-// todo: use async/mapObjValues
-const readTree = R.curry(async (root, fs) => {
+const readTreeWith = R.curry(async (pred, root, fs) => {
   const files = await readDir(root, fs);
   
   const filesPairs = await map(async (filepath) => {
     const absFilepath = joinPath(root, filepath);
     
     const res = (await dirExists(absFilepath, fs))
-      ? await readTree(absFilepath, fs)
-      : await readFile(absFilepath, fs);
+      ? await readTreeWith(pred, absFilepath, fs)
+      : await pred(absFilepath, fs);
 
     return [filepath, res];
   }, files);
   return R.fromPairs(filesPairs);
 });
+
+// requireTree = readTree(requireFs);
+const readTree = readTreeWith(readFile);
 
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
@@ -150,6 +152,10 @@ const writeTree = R.curry(async (root, tree, fs) => {
   }, R.toPairs(tree));
 });
 
+// moveFile / moveFileSync
+// move / moveSync, moveDir / moveDirSync
+// mergeFilesystems
+
 module.exports = {
   dirExists,
   dirExistsSync,
@@ -164,6 +170,7 @@ module.exports = {
   readDirDeep,
   readDirDeepSync,
   readTree,
+  readTreeWith,
   require: requireFs,
   requireSync: requireFsSync,
   writeTree,

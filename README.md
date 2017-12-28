@@ -29,12 +29,12 @@ Functions are designed to work with any filesystem that implements Node's [`fs`]
 ```javascript
 const fs = require('fs');
 const memfs = require('memfs').Volume.fromJSON({});
-const { readFile, readFileSync } = require('funk-fs');
+const { readFile } = require('funk-fs');
 
 // core
-const files = await readDir('/', fs);
+const files = await readFile('/file.txt', fs);
 // 3rd-party
-const files = await readDir('/', memfs);
+const files = await readFile('/file.txt', memfs);
 ```
 
 #### Curried
@@ -43,18 +43,33 @@ Functions can have their arguments partially applied to create useful intermedia
 
 ```javascript
 const fs = require('fs');
-const { readFile } = require('funk-fs');
+const memfs = require('memfs').Volume.fromJSON({});
+const { readFile, readTreeWith } = require('funk-fs');
 
-const readData = readFile('/data.txt');
+// partially apply arguments
+const readTree = readTreeWith(readFile);
+const readRootTree = readTree('/');
 
-await readData(fs1);
-await readData(fs2);
+const tree = await readRootTree(fs);
+const memTree = await readRootTree(memfs);
 ```
 
 #### Promise-based Async
 Async functions expose a promise-based interface. 
 
-*This also has the effect of making async / sync function arguments symmetrical*
+```javascript
+const fs = require('fs');
+const { fileExists } = require('funk-fs');
+
+await fileExists('data.txt', fs);
+// or
+fileExists('data.txt', fs)
+  .then(...)
+  .catch(...);
+```
+
+#### Symmetrical
+Sync and async functions are available for every operation, and share the same arguments.
 
 ```javascript
 const fs = require('fs');
@@ -66,6 +81,7 @@ await fileExists('data.txt', fs);
 fileExistsSync('data.txt', fs);
 ```
 
+
 ----
 
 ## API
@@ -74,6 +90,70 @@ All arguments are required
 The order of arguments for many functions differ from those in [Node's `fs` module](https://nodejs.org/api/fs.html). Arguments are arranged "data-last" to promote useful partial-application.
 
 See [`nodejs.org/api/fs`](https://nodejs.org/api/fs.html) for more thorough documentation, and alternate argument types.
+
+### Extra
+These functions are not part of Node core's `fs` module, but they will work with any filesystem that implements a similar interface.
+
+#### `dirExists` / `dirExistsSync`
+Does a directory exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
+```typescript
+dirExists(path: String, fs: FileSystem): Boolean
+```
+
+#### `fileExists` / `fileExistsSync`
+Does a file exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
+```typescript
+fileExists(path: String, fs: FileSystem): Boolean
+```
+
+#### `mkdirp` / `mkdirpSync`
+Recursively create folders at any depth
+```typescript
+mkdirp(path: String, fs: FileSystem): undefined
+```
+
+#### `isDir` / `isDirSync`
+Is the target path a directory? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
+```typescript
+isDir(path: String, fs: FileSystem): Boolean
+```
+
+#### `isFile` / `isFileSync`
+Is the target path a file? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
+```typescript
+isFile(path: String, fs: FileSystem): Boolean
+```
+
+#### `readDirDeep` / `readDirDeepSync`
+List files in a directory and all child directories
+```typescript
+readDirDeep(path: String, fs: FileSystem): String[]
+```
+
+#### `readTree` / `readTreeSync`
+`readTreeWith(readFile)` Inverse of `writeTree`
+```typescript
+readTree(path: String, fs: FileSystem): Object
+```
+
+#### `readTreeWith` / `readTreeWithSync`
+Read a directory of any depth into an object. The predicate determines the object values, one per filepath key.
+```typescript
+type FilePred = (path: String, fs: FileSystem): Any
+readTree(pred: FilePred, path: String, fs: FileSystem): Object
+```
+
+#### `require` / `requireSync`
+Require a JavaScript module
+```typescript
+require(path: String, fs: FileSystem): Any
+```
+
+#### `writeTree` / `writeTreeSync`
+Write a directory structure of any depth from an object. Inverse of `readTree`
+```typescript
+writeTree(path: String, tree: Object, fs: FileSystem): undefined
+```
 
 
 ### Core
@@ -271,7 +351,7 @@ utimes(atime: Date, mtime: Date, path: String, fs: FileSystem): undefined
 
 #### `watchFile`
 ```typescript
-watchFile(listener: Function, filename: String, fs: FileSystem):
+watchFile(listener: Function, filename: String, fs: FileSystem): fs.FSWatcher
 ```
 
 #### `write` / `writeSync`
@@ -282,61 +362,4 @@ watchFile(listener: Function, filename: String, fs: FileSystem):
 #### `writeFile` / `writeFileSync`
 ```typescript
 writeFile(data: String, file: String, fs: FileSystem): undefined
-```
-
-### Extra
-Additional functions for useful filesystem operations.
-
-#### `dirExists` / `dirExistsSync`
-Does a directory exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
-```typescript
-dirExists(path: String, fs: FileSystem): Boolean
-```
-
-#### `fileExists` / `fileExistsSync`
-Does a file exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
-```typescript
-fileExists(path: String, fs: FileSystem): Boolean
-```
-
-#### `mkdirp` / `mkdirpSync`
-Recursively create folders at any depth
-```typescript
-mkdirp(path: String, fs: FileSystem): undefined
-```
-
-#### `isDir` / `isDirSync`
-Is the target path a directory? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
-```typescript
-isDir(path: String, fs: FileSystem): Boolean
-```
-
-#### `isFile` / `isFileSync`
-Is the target path a file? *(Throws if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
-```typescript
-isFile(path: String, fs: FileSystem): Boolean
-```
-
-#### `readDirDeep` / `readDirDeepSync`
-List files in a directory and all child directories
-```typescript
-readDirDeep(path: String, fs: FileSystem): String[]
-```
-
-#### `readTree` / `readTreeSync`
-Read a directory of any depth into an object. Inverse of `writeTree`
-```typescript
-readTree(path: String, fs: FileSystem): Object
-```
-
-#### `require` / `requireSync`
-Require a JavaScript module
-```typescript
-require(path: String, fs: FileSystem): Any
-```
-
-#### `writeTree` / `writeTreeSync`
-Write a directory structure of any depth from an object. Inverse of `readTree`
-```typescript
-writeTree(path: String, tree: Object, fs: FileSystem): undefined
 ```
