@@ -1,6 +1,7 @@
 'use strict';
 
 // modules
+const R = require('ramda');
 const { Volume } = require('memfs');
 const { expect } = require('chai');
 const chai = require('chai');
@@ -23,14 +24,20 @@ const {
   readDirDeepSync,
   readFile,
   readTree,
+  readTreeWith,
   require: requireFs,
   requireSync: requireFsSync,
+  stat,
   writeFile,
   writeTree,
 } = require('..');
 
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
+
+const fileSize = R.curry(async (path, fs) => {
+  return (await stat(path, fs)).size;
+});
 
 describe('extra functions', () => {
   
@@ -215,6 +222,37 @@ describe('extra functions', () => {
     it('should require files from the specified file system', async () => {
       await expect(requireFs('/my-module.js', fs)).to.eventually.eql({ success: true });
       expect(requireFsSync('/my-module.js', fs)).to.eql({ success: true });
+    });
+    
+  });
+  
+  describe('readTreeWith', () => {
+    
+    beforeEach('write tree', async () => {
+      await writeTree('/', {
+        one: 'a',
+        two: 'aa',
+        three: 'aaa',
+        four: {
+          five: 'aaaaa',
+          six: { seven: 'aaaaaaa' },
+        },
+      }, fs);
+    });
+    
+    it('should determine object values with pred', async () => {
+      const tree = await readTreeWith(fileSize, '/', fs);
+
+      expect(tree).to.eql({
+        one: 1,
+        two: 2,
+        three: 3,
+        four: {
+          five: 5,
+          six: { seven: 7 },
+        },
+      });
+      
     });
     
   });

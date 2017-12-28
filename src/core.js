@@ -171,7 +171,6 @@ const utimesSync = R.curry((atime, mtime, path, fs) => fs.utimesSync(path, atime
 // todo: add listener arg
 const watch = R.curry((filename, fs) => fs.watch(filename, { /* opts */ }));
 
-// todo: add listener arg
 const watchFile = R.curry((listener, filename, fs) => fs.watchFile(filename, { /* opts */ }, listener));
 
 // @async
