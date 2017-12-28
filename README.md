@@ -139,8 +139,8 @@ readTree(path: String, fs: FileSystem): Object
 #### `readTreeWith` / `readTreeWithSync`
 Read a directory of any depth into an object. The predicate determines the object values, one per filepath key.
 ```typescript
-type FilePred = (path: String, fs: FileSystem): Any
-readTree(pred: FilePred, path: String, fs: FileSystem): Object
+type Pred = (path: String, fs: FileSystem): Any
+readTree(pred: Pred, path: String, fs: FileSystem): Object
 ```
 
 #### `require` / `requireSync`
