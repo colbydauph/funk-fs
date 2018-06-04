@@ -21,7 +21,6 @@ const {
   stat,
   statSync,
   writeFile,
-  // writeFileSync,
 } = require('./core');
 
 // string -> fs -> boolean

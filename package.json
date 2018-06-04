@@ -10,7 +10,7 @@
     "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)"
   ],
   "dependencies": {
-    "funk-lib": "github:colbydauph/funk-lib#0.2.0",
+    "funk-lib": "github:colbydauph/funk-lib#0.3.0",
     "ramda": "~0.25.0"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
   "nyc": {
     "statements": 65,
     "branches": 80,
-    "functions": 35,
+    "functions": 30,
     "lines": 90,
     "reporter": [
       "html",

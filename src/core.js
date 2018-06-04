@@ -7,9 +7,7 @@ const nodeFs = require('fs');
 
 // modules
 const R = require('ramda');
-
-// local
-const fromCallback = require('../lib/from-callback');
+const { fromCallback } = require('funk-lib/async');
 
 // @async string -> fs -> object
 const stat = R.curry((filepath, fs) => fromCallback((cb) => fs.stat(filepath, cb)));
