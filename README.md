@@ -94,6 +94,12 @@ See [`nodejs.org/api/fs`](https://nodejs.org/api/fs.html) for more thorough docu
 ### Extra
 These functions are not part of Node core's `fs` module, but they will work with any filesystem that implements a similar interface.
 
+#### `copy` / `copySync`
+Copy file or directory (recurisvely)
+```typescript
+copy(source: String, dest: String, fs: FileSystem): undefined
+```
+
 #### `dirExists` / `dirExistsSync`
 Does a directory exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
@@ -104,6 +110,12 @@ dirExists(path: String, fs: FileSystem): Boolean
 Does a file exist at this path? *(`false` if [`ENOENT`](https://nodejs.org/api/errors.html) error)*
 ```typescript
 fileExists(path: String, fs: FileSystem): Boolean
+```
+
+#### `fileSize` / `fileSizeSync`
+File size in bytes
+```typescript
+fileSize(path: String, fs: FileSystem): Boolean
 ```
 
 #### `mkdirp` / `mkdirpSync`

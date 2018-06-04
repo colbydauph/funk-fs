@@ -155,27 +155,6 @@ const writeTree = R.curry(async (root, tree, fs) => {
   }, R.toPairs(tree));
 });
 
-// copys a single file
-// const copyFile = R.curry(async (source, target, fs) => {
-//   // note: create write stream error uncatchable?
-//   if (!await isFile(source, fs)) {
-//     throw Error(`ENOENT - ${ source } is not a file`);
-//   }
-//   return new Promise((resolve, reject) => {
-//     fs.createReadStream(source)
-//       .pipe(fs
-//         .createWriteStream(target)
-//         .on('error', reject))
-//       .on('error', reject)
-//       .on('close', () => resolve());
-//   });
-// });
-
-// // copy a single file
-// const copyFileSync = R.curry((source, target, fs) => {
-//   writeFileSync(readFileSync(source, fs), target, fs);
-// });
-
 // copy file or directory (recursive)
 const copy = R.curry(async (source, target, fs) => {
   if (await isFile(source, fs)) return await copyFile(source, target, fs);
@@ -200,6 +179,9 @@ const copySync = R.curry((source, target, fs) => {
   ), files);
 });
 
+const fileSize = R.curry(async (path, fs) => (await stat(path, fs)).size);
+const fileSizeSync = R.curry((path, fs) => statSync(path, fs).size);
+
 module.exports = {
   copy,
   copySync,
@@ -207,6 +189,8 @@ module.exports = {
   dirExistsSync,
   fileExists,
   fileExistsSync,
+  fileSize,
+  fileSizeSync,
   isDir,
   isDirSync,
   isFile,

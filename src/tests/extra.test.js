@@ -1,7 +1,6 @@
 'use strict';
 
 // modules
-const R = require('ramda');
 const { Volume } = require('memfs');
 const { expect } = require('chai');
 const chai = require('chai');
@@ -15,6 +14,8 @@ const {
   dirExistsSync,
   fileExists,
   fileExistsSync,
+  fileSize,
+  fileSizeSync,
   isDir,
   isDirSync,
   isFile,
@@ -29,7 +30,6 @@ const {
   readTreeWith,
   require: requireFs,
   requireSync: requireFsSync,
-  stat,
   writeFile,
   writeTree,
 } = require('..');
@@ -37,9 +37,6 @@ const {
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
 
-const fileSize = R.curry(async (path, fs) => {
-  return (await stat(path, fs)).size;
-});
 
 describe('extra functions', () => {
   
@@ -48,7 +45,7 @@ describe('extra functions', () => {
     fs = Volume.fromJSON({});
   });
     
-  describe('copy', () => {
+  describe('copy / copySync', () => {
     
     beforeEach('write files', async () => {
       await writeTree('/', {
@@ -230,6 +227,32 @@ describe('extra functions', () => {
       expect(fileExistsSync('/one', fs)).to.eql(false);
     });
 
+  });
+    
+  describe('fileSize / fileSizeSync', () => {
+    
+    beforeEach('write files', async () => {
+      await writeTree('/', {
+        'file.txt': 'Hello! This is some test text.',
+      }, fs);
+    });
+    
+    describe('async', () => {
+      
+      it('should return file size in bytes', async () => {
+        expect(await fileSize('/file.txt', fs)).to.eql(30);
+      });
+      
+    });
+    
+    describe('sync', () => {
+      
+      it('should return file size in bytes', () => {
+        expect(fileSizeSync('/file.txt', fs)).to.eql(30);
+      });
+
+    });
+    
   });
     
   describe('isFile / isFileSync', () => {
