@@ -29,12 +29,12 @@ Functions are designed to work with any filesystem that implements Node's [`fs`]
 ```javascript
 const fs = require('fs');
 const memfs = require('memfs').Volume.fromJSON({});
-const { readFile } = require('funk-fs');
+const { mkdirp } = require('funk-fs');
 
 // core
-const files = await readFile('/file.txt', fs);
+const files = await mkdirp('/dist', fs);
 // 3rd-party
-const files = await readFile('/file.txt', memfs);
+const files = await mkdirp('/dist', memfs);
 ```
 
 #### Curried
