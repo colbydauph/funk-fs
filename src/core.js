@@ -39,8 +39,8 @@ const close = R.curry((fd, fs) => fromCallback((cb) => fs.close(fd, cb)));
 const closeSync = R.curry((fd, fs) => fs.closeSync(fd));
 
 // @async
-const copyFile = R.curry((src, dest, fs) => fromCallback((cb) => fs.copyFile(src, dest, 0, cb)));
-const copyFileSync = R.curry((src, dest, fs) => fs.copyFile(src, dest, 0));
+const copyFile = R.curry((src, dest, fs) => fromCallback((cb) => fs.copyFile(src, dest, cb)));
+const copyFileSync = R.curry((src, dest, fs) => fs.copyFileSync(src, dest));
 
 // string -> fs -> stream
 const createReadStream = R.curry((filepath, fs) => fs.createReadStream(filepath, { /* opts */ }));
@@ -182,6 +182,7 @@ const writeSync = R.curry(() => {
   throw Error('writeSync not implemented');
 });
 
+// fixme: arg order makes more sense as (file, data, fs)
 // @async
 const writeFile = R.curry((data, file, fs) => fromCallback((cb) => fs.writeFile(file, data, { /* opts */ }, cb)));
 const writeFileSync = R.curry((data, file, fs) => fs.writeFileSync(file, data, { /* opts */ }));

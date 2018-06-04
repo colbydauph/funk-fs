@@ -5,11 +5,13 @@ const { dirname, join: joinPath } = require('path');
 
 // modules
 const R = require('ramda');
+const { forEach, map, flatMap } = require('funk-lib/async');
 
 // local
-const { forEach, map, flatMap, mapObjValues } = require('../lib/async');
 const requireString = require('../lib/require-string');
 const {
+  copyFile,
+  copyFileSync,
   mkdir,
   mkdirSync,
   readDir,
@@ -19,6 +21,7 @@ const {
   stat,
   statSync,
   writeFile,
+  // writeFileSync,
 } = require('./core');
 
 // string -> fs -> boolean
@@ -152,11 +155,54 @@ const writeTree = R.curry(async (root, tree, fs) => {
   }, R.toPairs(tree));
 });
 
-// moveFile / moveFileSync
-// move / moveSync, moveDir / moveDirSync
-// mergeFilesystems
+// copys a single file
+// const copyFile = R.curry(async (source, target, fs) => {
+//   // note: create write stream error uncatchable?
+//   if (!await isFile(source, fs)) {
+//     throw Error(`ENOENT - ${ source } is not a file`);
+//   }
+//   return new Promise((resolve, reject) => {
+//     fs.createReadStream(source)
+//       .pipe(fs
+//         .createWriteStream(target)
+//         .on('error', reject))
+//       .on('error', reject)
+//       .on('close', () => resolve());
+//   });
+// });
+
+// // copy a single file
+// const copyFileSync = R.curry((source, target, fs) => {
+//   writeFileSync(readFileSync(source, fs), target, fs);
+// });
+
+// copy file or directory (recursive)
+const copy = R.curry(async (source, target, fs) => {
+  if (await isFile(source, fs)) return await copyFile(source, target, fs);
+  if (!await dirExists(target, fs)) await mkdirp(target, fs);
+  const files = await readDir(source, fs);
+  await forEach((file) => copy(
+    joinPath(source, file),
+    joinPath(target, file),
+    fs,
+  ), files);
+});
+
+// copy file or directory (recursive)
+const copySync = R.curry((source, target, fs) => {
+  if (isFileSync(source, fs)) return copyFileSync(source, target, fs);
+  if (!dirExistsSync(target, fs)) mkdirpSync(target, fs);
+  const files = readDirSync(source, fs);
+  R.forEach((file) => copySync(
+    joinPath(source, file),
+    joinPath(target, file),
+    fs,
+  ), files);
+});
 
 module.exports = {
+  copy,
+  copySync,
   dirExists,
   dirExistsSync,
   fileExists,
