@@ -8,10 +8,14 @@ const chaiAsPromised = require('chai-as-promised');
 
 // local
 const {
+  copy,
+  copySync,
   dirExists,
   dirExistsSync,
   fileExists,
   fileExistsSync,
+  fileSize,
+  fileSizeSync,
   isDir,
   isDirSync,
   isFile,
@@ -23,6 +27,7 @@ const {
   readDirDeepSync,
   readFile,
   readTree,
+  readTreeWith,
   require: requireFs,
   requireSync: requireFsSync,
   writeFile,
@@ -32,6 +37,7 @@ const {
 // add chai-as-promised middleware
 chai.use(chaiAsPromised);
 
+
 describe('extra functions', () => {
   
   let fs;
@@ -39,6 +45,139 @@ describe('extra functions', () => {
     fs = Volume.fromJSON({});
   });
     
+  describe('copy / copySync', () => {
+    
+    beforeEach('write files', async () => {
+      await writeTree('/', {
+        'one.txt': 'Hello!',
+        'three.txt': '3!',
+        two: {},
+        src: {
+          'aaa.txt': 1,
+          'bbb.txt': 2,
+          ccc: {
+            'ddd.txt': {
+              'eee.txt': 6,
+            },
+          },
+        },
+        partial: {
+          'aaa.txt': 1000,
+          'ddd.txt': 2000,
+          ccc: {
+            'ddd.txt': {
+              'eee.txt': 60000,
+              'fff.txt': 7,
+            },
+          },
+        },
+      }, fs);
+    });
+    
+    describe('async', () => {
+      
+      it('should copy files', async () => {
+        await copy('/one.txt', '/two.txt', fs);
+        const one = await readFile('/one.txt', fs);
+        const two = await readFile('/two.txt', fs);
+        expect(one).to.eql('Hello!');
+        expect(two).to.eql('Hello!');
+      });
+      
+      it('should recursively copy dirs', async () => {
+        await copy('/src', '/dist', fs);
+        const src = await readTree('/src', fs);
+        const dist = await readTree('/dist', fs);
+        expect(src).to.eql(dist);
+      });
+      
+      it('should overwrite files that exist', async () => {
+        await copy('/one.txt', '/three.txt', fs);
+        const one = await readFile('/one.txt', fs);
+        const three = await readFile('/three.txt', fs);
+        expect(one).to.eql('Hello!');
+        expect(three).to.eql('Hello!');
+      });
+
+      it('should overwrite deep files that exist', async () => {
+        await copy('/src', '/partial', fs);
+        const partial = await readTree('/partial', fs);
+        expect(partial).to.eql({
+          'aaa.txt': '1',
+          'bbb.txt': '2',
+          ccc: {
+            'ddd.txt': {
+              'eee.txt': '6',
+              'fff.txt': '7',
+            },
+          },
+          'ddd.txt': '2000',
+        });
+      });
+      
+      it('should throw if dir copied to file', async () => {
+        await expect(copy('/src', '/one.txt', fs)).to.be.rejectedWith(Error);
+      });
+      
+      it('should throw if file copied to dir', async () => {
+        await expect(copy('/one.txt', '/two', fs)).to.be.rejectedWith(Error);
+      });
+      
+    });
+    
+    describe('sync', () => {
+      
+      it('should copy files', async () => {
+        copySync('/one.txt', '/two.txt', fs);
+        const one = await readFile('/one.txt', fs);
+        const two = await readFile('/two.txt', fs);
+        expect(one).to.eql('Hello!');
+        expect(two).to.eql('Hello!');
+      });
+      
+      it('should recursively copy dirs', async () => {
+        copySync('/src', '/dist', fs);
+        const src = await readTree('/src', fs);
+        const dist = await readTree('/dist', fs);
+        expect(src).to.eql(dist);
+      });
+      
+      it('should overwrite files that exist', async () => {
+        copySync('/one.txt', '/three.txt', fs);
+        const one = await readFile('/one.txt', fs);
+        const three = await readFile('/three.txt', fs);
+        expect(one).to.eql('Hello!');
+        expect(three).to.eql('Hello!');
+      });
+
+      it('should overwrite deep files that exist', async () => {
+        copySync('/src', '/partial', fs);
+        const partial = await readTree('/partial', fs);
+        expect(partial).to.eql({
+          'aaa.txt': '1',
+          'bbb.txt': '2',
+          ccc: {
+            'ddd.txt': {
+              'eee.txt': '6',
+              'fff.txt': '7',
+            },
+          },
+          'ddd.txt': '2000',
+        });
+      });
+      
+      it('should throw if dir copied to file', async () => {
+        expect(() => copySync('/src', '/one.txt', fs)).to.throw(Error);
+      });
+      
+      it('should throw if file copied to dir', async () => {
+        expect(() => copySync('/one.txt', '/two', fs)).to.throw(Error);
+      });
+      
+    });
+    
+  });
+  
   describe('dirExists / dirExistsSync', () => {
     
     beforeEach('write files', async () => {
@@ -88,6 +227,32 @@ describe('extra functions', () => {
       expect(fileExistsSync('/one', fs)).to.eql(false);
     });
 
+  });
+    
+  describe('fileSize / fileSizeSync', () => {
+    
+    beforeEach('write files', async () => {
+      await writeTree('/', {
+        'file.txt': 'Hello! This is some test text.',
+      }, fs);
+    });
+    
+    describe('async', () => {
+      
+      it('should return file size in bytes', async () => {
+        expect(await fileSize('/file.txt', fs)).to.eql(30);
+      });
+      
+    });
+    
+    describe('sync', () => {
+      
+      it('should return file size in bytes', () => {
+        expect(fileSizeSync('/file.txt', fs)).to.eql(30);
+      });
+
+    });
+    
   });
     
   describe('isFile / isFileSync', () => {
@@ -184,6 +349,8 @@ describe('extra functions', () => {
       expect(dirExistsSync('/sync/other/test-dir', fs)).to.eql(true);
     });
     
+    it('should not throw if the root dir exists?');
+    
   });
   
   describe('readDirDeep / readDirDeepSync', () => {
@@ -215,6 +382,37 @@ describe('extra functions', () => {
     it('should require files from the specified file system', async () => {
       await expect(requireFs('/my-module.js', fs)).to.eventually.eql({ success: true });
       expect(requireFsSync('/my-module.js', fs)).to.eql({ success: true });
+    });
+    
+  });
+  
+  describe('readTreeWith', () => {
+    
+    beforeEach('write tree', async () => {
+      await writeTree('/', {
+        one: 'a',
+        two: 'aa',
+        three: 'aaa',
+        four: {
+          five: 'aaaaa',
+          six: { seven: 'aaaaaaa' },
+        },
+      }, fs);
+    });
+    
+    it('should determine object values with pred', async () => {
+      const tree = await readTreeWith(fileSize, '/', fs);
+
+      expect(tree).to.eql({
+        one: 1,
+        two: 2,
+        three: 3,
+        four: {
+          five: 5,
+          six: { seven: 7 },
+        },
+      });
+      
     });
     
   });
@@ -295,7 +493,7 @@ describe('extra functions', () => {
       expect(`${ await readFile('/two/four/five', fs) }`).to.eql('5');
     });
     
-    it('should be complementary to writeFile', async () => {
+    it('should be complementary to readTree', async () => {
       const treeIn = {
         bin: {
           bash: {
@@ -315,16 +513,21 @@ describe('extra functions', () => {
           one: 'two',
         },
       };
-      let error;
-      try {
-        await writeTree('/', tree, fs);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(error).to.be.an.instanceOf(Error);
+      await expect(writeTree('/', tree, fs)).to.eventually.be.rejectedWith(Error);
+    });
+  
+    it('should create target dir if it does not exist', async () => {
+      const tree = { one: 'two' };
+      await writeTree('/test-dir', tree, fs);
+      expect(await isDir('/test-dir', fs)).to.eql(true);
     });
     
+    // todo: should this use mkdirp logic instead?
+    it('should throw if parent dir does not exist', async () => {
+      const tree = { one: 'two' };
+      await expect(writeTree('/fake/dir', tree, fs)).to.eventually.be.rejectedWith(Error);
+    });
+  
   });
   
 });

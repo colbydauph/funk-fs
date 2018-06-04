@@ -5,11 +5,13 @@ const { dirname, join: joinPath } = require('path');
 
 // modules
 const R = require('ramda');
+const { forEach, map, flatMap } = require('funk-lib/async');
 
 // local
-const { forEach, map, flatMap } = require('../lib/async');
 const requireString = require('../lib/require-string');
 const {
+  copyFile,
+  copyFileSync,
   mkdir,
   mkdirSync,
   readDir,
@@ -119,47 +121,75 @@ const fileExistsSync = R.curry((filepath, fs) => {
 });
 
 // string -> fs -> object
-// todo: use async/mapObjValues
-const readTree = R.curry(async (root, fs) => {
+const readTreeWith = R.curry(async (pred, root, fs) => {
   const files = await readDir(root, fs);
   
   const filesPairs = await map(async (filepath) => {
     const absFilepath = joinPath(root, filepath);
     
     const res = (await dirExists(absFilepath, fs))
-      ? await readTree(absFilepath, fs)
-      : await readFile(absFilepath, fs);
+      ? await readTreeWith(pred, absFilepath, fs)
+      : await pred(absFilepath, fs);
 
     return [filepath, res];
   }, files);
   return R.fromPairs(filesPairs);
 });
 
+// requireTree = readTree(requireFs);
+const readTree = readTreeWith(readFile);
+
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
+  if (!await dirExists(root, fs)) await mkdir(root, fs);
+  
   // eslint-disable-next-line max-statements
   await forEach(async ([filepath, value]) => {
     const absFilepath = joinPath(root, filepath);
-    const hasChildren = (typeof value === 'object');
-    
-    let fileIsDir = await dirExists(absFilepath, fs);
 
-    if (hasChildren && !fileIsDir) {
-      await mkdirp(absFilepath, fs);
-      fileIsDir = true;
-    }
-  
-    if (!fileIsDir && hasChildren) throw Error('Cannot write dir to file');
-    if (fileIsDir) return writeTree(absFilepath, value, fs);
-    await writeFile(value, absFilepath, fs);
+    return (typeof value === 'object')
+      ? writeTree(absFilepath, value, fs)
+      : writeFile(value, absFilepath, fs);
+
   }, R.toPairs(tree));
 });
 
+// copy file or directory (recursive)
+const copy = R.curry(async (source, target, fs) => {
+  if (await isFile(source, fs)) return await copyFile(source, target, fs);
+  if (!await dirExists(target, fs)) await mkdirp(target, fs);
+  const files = await readDir(source, fs);
+  await forEach((file) => copy(
+    joinPath(source, file),
+    joinPath(target, file),
+    fs,
+  ), files);
+});
+
+// copy file or directory (recursive)
+const copySync = R.curry((source, target, fs) => {
+  if (isFileSync(source, fs)) return copyFileSync(source, target, fs);
+  if (!dirExistsSync(target, fs)) mkdirpSync(target, fs);
+  const files = readDirSync(source, fs);
+  R.forEach((file) => copySync(
+    joinPath(source, file),
+    joinPath(target, file),
+    fs,
+  ), files);
+});
+
+const fileSize = R.curry(async (path, fs) => (await stat(path, fs)).size);
+const fileSizeSync = R.curry((path, fs) => statSync(path, fs).size);
+
 module.exports = {
+  copy,
+  copySync,
   dirExists,
   dirExistsSync,
   fileExists,
   fileExistsSync,
+  fileSize,
+  fileSizeSync,
   isDir,
   isDirSync,
   isFile,
@@ -169,6 +199,7 @@ module.exports = {
   readDirDeep,
   readDirDeepSync,
   readTree,
+  readTreeWith,
   require: requireFs,
   requireSync: requireFsSync,
   writeTree,

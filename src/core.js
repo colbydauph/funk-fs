@@ -7,9 +7,7 @@ const nodeFs = require('fs');
 
 // modules
 const R = require('ramda');
-
-// local
-const fromCallback = require('../lib/from-callback');
+const { fromCallback } = require('funk-lib/async');
 
 // @async string -> fs -> object
 const stat = R.curry((filepath, fs) => fromCallback((cb) => fs.stat(filepath, cb)));
@@ -39,8 +37,8 @@ const close = R.curry((fd, fs) => fromCallback((cb) => fs.close(fd, cb)));
 const closeSync = R.curry((fd, fs) => fs.closeSync(fd));
 
 // @async
-const copyFile = R.curry((src, dest, fs) => fromCallback((cb) => fs.copyFile(src, dest, 0, cb)));
-const copyFileSync = R.curry((src, dest, fs) => fs.copyFile(src, dest, 0));
+const copyFile = R.curry((src, dest, fs) => fromCallback((cb) => fs.copyFile(src, dest, cb)));
+const copyFileSync = R.curry((src, dest, fs) => fs.copyFileSync(src, dest));
 
 // string -> fs -> stream
 const createReadStream = R.curry((filepath, fs) => fs.createReadStream(filepath, { /* opts */ }));
@@ -171,7 +169,6 @@ const utimesSync = R.curry((atime, mtime, path, fs) => fs.utimesSync(path, atime
 // todo: add listener arg
 const watch = R.curry((filename, fs) => fs.watch(filename, { /* opts */ }));
 
-// todo: add listener arg
 const watchFile = R.curry((listener, filename, fs) => fs.watchFile(filename, { /* opts */ }, listener));
 
 // @async
@@ -183,6 +180,7 @@ const writeSync = R.curry(() => {
   throw Error('writeSync not implemented');
 });
 
+// fixme: arg order makes more sense as (file, data, fs)
 // @async
 const writeFile = R.curry((data, file, fs) => fromCallback((cb) => fs.writeFile(file, data, { /* opts */ }, cb)));
 const writeFileSync = R.curry((data, file, fs) => fs.writeFileSync(file, data, { /* opts */ }));

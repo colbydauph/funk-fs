@@ -1,6 +1,6 @@
 {
   "name": "funk-fs",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "engines": {
     "node": ">= 8.2"
   },
@@ -10,33 +10,34 @@
     "Colby Dauphinais <colby@dauphina.is> (https://colby.dauphina.is)"
   ],
   "dependencies": {
+    "funk-lib": "github:colbydauph/funk-lib#0.3.0",
     "ramda": "~0.25.0"
   },
   "devDependencies": {
     "chai": "~4.1.2",
     "chai-as-promised": "~7.1.1",
-    "eslint": "~4.12.0",
-    "eslint-config-defaults": "colbydauph/eslint-config-defaults#1.0.0",
-    "memfs": "~2.6.0",
-    "mocha": "~4.0.1",
-    "nyc": "~11.3.0",
-    "sinon": "~4.1.2"
+    "eslint": "~4.19.1",
+    "eslint-config-defaults": "github:colbydauph/eslint-config-defaults#1.1.0",
+    "memfs": "~2.9.0",
+    "mocha": "~5.2.0",
+    "nyc": "~12.0.2",
+    "sinon": "~5.0.10"
   },
-  "main": "src",
+  "main": ".",
   "scripts": {
-    "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress || { echo \"\\033[0;32mview coverage\\033[0m\" `pwd`/coverage/index.html; exit 1; }",
-    "init": "rm -rf ./node_modules; npm install;",
-    "lint": "eslint --max-warnings=10 $(find . ! -path '*node_modules*' ! -path '*dist*' ! -path '*coverage*' -type f | egrep '[.]js?$') && echo '\\033[0;32mLinting - Passed\\033[0m'",
+    "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress",
+    "init": "rm -rf ./node_modules && npm install",
+    "lint": "eslint --max-warnings=10 $(find . ! -path '*node_modules*' ! -path '*dist*' ! -path '*coverage*' -type f | egrep '[.]js?$')",
     "start": "node .",
-    "test-watch": "mocha --reporter=min --watch $(find . ! -path '*node_modules*' -name '*.test.js')",
+    "test:watch": "NODE_ENV=test mocha --reporter=min --watch $(find . ! -path '*node_modules*' -name '*.test.js')",
     "test": "NODE_ENV=test mocha --reporter=list $(find . ! -path '*node_modules*' -name '*.test.js')",
-    "verify": "npm run init && npm run lint && npm run cover"
+    "verify": "npm run lint && npm run cover"
   },
   "nyc": {
-    "lines": 60,
-    "statements": 60,
+    "statements": 65,
+    "branches": 80,
     "functions": 30,
-    "branches": 75,
+    "lines": 90,
     "reporter": [
       "html",
       "text-summary"
@@ -62,11 +63,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/colbydauph/dauphinais-server.git"
+    "url": "https://github.com/colbydauph/funk-fs.git"
   },
   "bugs": {
-    "url": "https://github.com/colbydauph/dauphinais-server/issues"
+    "url": "https://github.com/colbydauph/funk-fs/issues"
   },
   "private": true,
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

@@ -5,17 +5,11 @@ dependencies:
     - npm i -g npm
 
 machine:
-  # Set the timezone
-  timezone:
-    Etc/UTC
-
-  # Version of node to use
   node:
     version:
-      8.2
+      8.9.1
 
 # Customize test commands
 test:
   override:
-    - npm run lint
-    - npm run cover
+    - npm run verify
