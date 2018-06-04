@@ -8,9 +8,9 @@ const { Volume } = require('memfs');
 const { expect } = require('chai');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const { toString: streamToString } = require('funk-lib/stream');
 
 // local
-const { toString: streamToString } = require('../../lib/stream');
 const {
   exists,
   existsSync,
