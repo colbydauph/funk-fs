@@ -137,6 +137,7 @@ const mkdirp = R.curry(async (path, fs) => {
   try {
     return await mkdir(path, fs);
   } catch (err) {
+    if (err.code === 'EEXIST') return;
     if (err.code !== 'ENOENT') throw err;
     // recursively make parent dir
     await mkdirp(dirname(path), fs);
@@ -145,10 +146,10 @@ const mkdirp = R.curry(async (path, fs) => {
   }
 });
 const mkdirpSync = R.curry((path, fs) => {
-  if (dirExistsSync(path, fs)) return;
   try {
     return mkdirSync(path, fs);
   } catch (err) {
+    if (err.code === 'EEXIST') return;
     if (err.code !== 'ENOENT') throw err;
     // recursively make parent dir
     mkdirpSync(dirname(path), fs);
