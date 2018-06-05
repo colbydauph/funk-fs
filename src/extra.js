@@ -6,6 +6,7 @@ const { dirname, join: joinPath } = require('path');
 // modules
 const R = require('ramda');
 const { forEach, map, flatMap } = require('funk-lib/async');
+const { isObject } = require('funk-lib/is');
 
 // local
 const requireString = require('../lib/require-string');
@@ -96,6 +97,33 @@ const fileExistsSync = R.curry((filepath, fs) => {
   }
 });
 
+
+// string -> fs -> undefined
+const mkdirp = R.curry(async (path, fs) => {
+  if (await dirExists(path, fs)) return;
+  try {
+    return await mkdir(path, fs);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+    // recursively make parent dir
+    await mkdirp(dirname(path), fs);
+    // retry original
+    return await mkdirp(path, fs);
+  }
+});
+const mkdirpSync = R.curry((path, fs) => {
+  if (dirExistsSync(path, fs)) return;
+  try {
+    return mkdirSync(path, fs);
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+    // recursively make parent dir
+    mkdirpSync(dirname(path), fs);
+    // retry original
+    return mkdirpSync(path, fs);
+  }
+});
+
 // string -> fs -> object
 const readTreeWith = R.curry(async (pred, root, fs) => {
   const files = await readDir(root, fs);
@@ -118,44 +146,19 @@ const readTree = readTreeWith(readFile);
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
   if (!await dirExists(root, fs)) await mkdir(root, fs);
-  
+
   // eslint-disable-next-line max-statements
   await forEach(async ([filepath, value]) => {
     const absFilepath = joinPath(root, filepath);
-
-    return (typeof value === 'object')
-      ? writeTree(absFilepath, value, fs)
-      : writeFile(value, absFilepath, fs);
-
+    
+    if (isObject(value)) {
+      return await writeTree(absFilepath, value, fs);
+    }
+    await mkdirp(dirname(absFilepath), fs);
+    await writeFile(value, absFilepath, fs);
   }, R.toPairs(tree));
 });
 
-
-// string -> fs -> undefined
-const mkdirp = R.curry(async (path, fs) => {
-  try {
-    return await mkdir(path, fs);
-  } catch (err) {
-    if (err.code === 'EEXIST') return;
-    if (err.code !== 'ENOENT') throw err;
-    // recursively make parent dir
-    await mkdirp(dirname(path), fs);
-    // retry original
-    return await mkdirp(path, fs);
-  }
-});
-const mkdirpSync = R.curry((path, fs) => {
-  try {
-    return mkdirSync(path, fs);
-  } catch (err) {
-    if (err.code === 'EEXIST') return;
-    if (err.code !== 'ENOENT') throw err;
-    // recursively make parent dir
-    mkdirpSync(dirname(path), fs);
-    // retry original
-    return mkdirpSync(path, fs);
-  }
-});
 
 // copy file or directory (recursive)
 const copy = R.curry(async (source, target, fs) => {
