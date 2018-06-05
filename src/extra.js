@@ -133,7 +133,6 @@ const writeTree = R.curry(async (root, tree, fs) => {
 
 // string -> fs -> undefined
 const mkdirp = R.curry(async (path, fs) => {
-  if (await dirExists(path, fs)) return;
   try {
     return await mkdir(path, fs);
   } catch (err) {
