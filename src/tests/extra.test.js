@@ -349,7 +349,11 @@ describe('extra functions', () => {
       expect(dirExistsSync('/sync/other/test-dir', fs)).to.eql(true);
     });
     
-    it('should not throw if the root dir exists?');
+    it('should not throw if the root dir exists', async () => {
+      await mkdirp('/test-root', fs);
+      await expect(mkdirp('/test-root', fs)).to.not.be.rejectedWith(Error);
+      expect(() => mkdirpSync('/test-root', fs)).to.not.throw(Error);
+    });
     
   });
   
