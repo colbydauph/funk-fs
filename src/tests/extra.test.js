@@ -355,6 +355,15 @@ describe('extra functions', () => {
       expect(() => mkdirpSync('/test-root', fs)).to.not.throw(Error);
     });
     
+    it('should throw if dir attempts to write over file', async () => {
+      await mkdir('/one', fs);
+      await mkdir('/one/two', fs);
+      await writeFile('test', '/one/two/three', fs);
+      
+      await expect(mkdirp('/one/two/three/four', fs)).to.be.rejectedWith(Error);
+      expect(() => mkdirpSync('/one/two/three/four', fs)).to.throw(Error);
+    });
+    
   });
   
   describe('readDirDeep / readDirDeepSync', () => {
@@ -510,7 +519,7 @@ describe('extra functions', () => {
       expect(treeIn).to.eql(treeOut);
     });
     
-    it('should write concatenated directories with mkdirp', async () => {
+    it('should write concatenated dirs with mkdirp', async () => {
       await writeTree('/', {
         '/test/one/two/three.jpg': 'four',
         '/test': {
@@ -518,6 +527,15 @@ describe('extra functions', () => {
             '/six/seven.jpg': 'eight',
           },
         },
+      }, fs);
+      expect(await readFile('/test/one/two/three.jpg', fs)).to.eql('four');
+      expect(await readFile('/test/five/six/seven.jpg', fs)).to.eql('eight');
+    });
+    
+    it('should not throw if concatenated dirs overlap', async () => {
+      await writeTree('/', {
+        '/test/one/two/three.jpg': 'four',
+        '/test/five/six/seven.jpg': 'eight',
       }, fs);
       expect(await readFile('/test/one/two/three.jpg', fs)).to.eql('four');
       expect(await readFile('/test/five/six/seven.jpg', fs)).to.eql('eight');
@@ -539,10 +557,11 @@ describe('extra functions', () => {
       expect(await isDir('/test-dir', fs)).to.eql(true);
     });
     
-    // todo: should this use mkdirp logic instead?
-    it('should throw if parent dir does not exist', async () => {
+    it('should mkdirp target dir', async () => {
       const tree = { one: 'two' };
-      await expect(writeTree('/fake/dir', tree, fs)).to.eventually.be.rejectedWith(Error);
+      await writeTree('/some/fake/dir', tree, fs);
+      expect(await isDir('/some/fake/dir', fs)).to.eql(true);
+      expect(await readFile('/some/fake/dir/one', fs)).to.eql('two');
     });
   
   });

@@ -101,9 +101,11 @@ const fileExistsSync = R.curry((filepath, fs) => {
 // string -> fs -> undefined
 const mkdirp = R.curry(async (path, fs) => {
   if (await dirExists(path, fs)) return;
+  if (await fileExists(path, fs)) throw Error(`mkdirp: ${ path }: Not a directory`);
   try {
     return await mkdir(path, fs);
   } catch (err) {
+    if (err.code === 'EEXIST') return;
     if (err.code !== 'ENOENT') throw err;
     // recursively make parent dir
     await mkdirp(dirname(path), fs);
@@ -113,9 +115,11 @@ const mkdirp = R.curry(async (path, fs) => {
 });
 const mkdirpSync = R.curry((path, fs) => {
   if (dirExistsSync(path, fs)) return;
+  if (fileExistsSync(path, fs)) throw Error(`mkdirpSync: ${ path }: Not a directory`);
   try {
     return mkdirSync(path, fs);
   } catch (err) {
+    if (err.code === 'EEXIST') return;
     if (err.code !== 'ENOENT') throw err;
     // recursively make parent dir
     mkdirpSync(dirname(path), fs);
@@ -145,7 +149,7 @@ const readTree = readTreeWith(readFile);
 
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
-  if (!await dirExists(root, fs)) await mkdir(root, fs);
+  if (!await dirExists(root, fs)) await mkdirp(root, fs);
 
   // eslint-disable-next-line max-statements
   await forEach(async ([filepath, value]) => {
