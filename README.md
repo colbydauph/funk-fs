@@ -9,7 +9,7 @@
 
 ## Usage
 ```shell
-$ npm i -P colbydauph/funk-fs
+$ npm i -P colbydauph/funk-fs#0.5.0
 ```
 
 ```javascript
