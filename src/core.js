@@ -174,10 +174,10 @@ const watchFile = R.curry((listener, filename, fs) => fs.watchFile(filename, { /
 // @async
 // todo: fix these
 const write = R.curry(() => {
-  throw Error('write not implemented');
+  throw Error('[funk-fs] write not implemented');
 });
 const writeSync = R.curry(() => {
-  throw Error('writeSync not implemented');
+  throw Error('[funk-fs] writeSync not implemented');
 });
 
 // fixme: arg order makes more sense as (file, data, fs)

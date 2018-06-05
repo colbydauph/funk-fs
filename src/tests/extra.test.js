@@ -453,7 +453,7 @@ describe('extra functions', () => {
   
   describe('writeTree', () => {
     
-    it('should write strings', async () => {
+    it('should write files as strings', async () => {
       const tree = {
         'text-file-1.txt': 'one',
         'text-file-2.jpg': 'two',
@@ -508,6 +508,19 @@ describe('extra functions', () => {
       await writeTree('/', treeIn, fs);
       const treeOut = await readTree('/', fs);
       expect(treeIn).to.eql(treeOut);
+    });
+    
+    it('should write concatenated directories with mkdirp', async () => {
+      await writeTree('/', {
+        '/test/one/two/three.jpg': 'four',
+        '/test': {
+          five: {
+            '/six/seven.jpg': 'eight',
+          },
+        },
+      }, fs);
+      expect(await readFile('/test/one/two/three.jpg', fs)).to.eql('four');
+      expect(await readFile('/test/five/six/seven.jpg', fs)).to.eql('eight');
     });
     
     it('should throw if dir content written to existing file', async () => {
