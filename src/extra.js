@@ -144,8 +144,25 @@ const readTreeWith = R.curry(async (pred, root, fs) => {
   return R.fromPairs(filesPairs);
 });
 
+// string -> fs -> object
+const readTreeWithSync = R.curry((pred, root, fs) => {
+  const files = readDirSync(root, fs);
+  
+  const filesPairs = R.map((filepath) => {
+    const absFilepath = joinPath(root, filepath);
+    
+    const res = dirExistsSync(absFilepath, fs)
+      ? readTreeWithSync(pred, absFilepath, fs)
+      : pred(absFilepath, fs);
+
+    return [filepath, res];
+  }, files);
+  return R.fromPairs(filesPairs);
+});
+
 // requireTree = readTree(requireFs);
 const readTree = readTreeWith(readFile);
+const readTreeSync = readTreeWithSync(readFileSync);
 
 // string -> object -> fs -> undefined
 const writeTree = R.curry(async (root, tree, fs) => {
@@ -209,7 +226,9 @@ module.exports = {
   readDirDeep,
   readDirDeepSync,
   readTree,
+  readTreeSync,
   readTreeWith,
+  readTreeWithSync,
   require: requireFs,
   requireSync: requireFsSync,
   writeTree,
