@@ -27,7 +27,9 @@ const {
   readDirDeepSync,
   readFile,
   readTree,
+  readTreeSync,
   readTreeWith,
+  readTreeWithSync,
   require: requireFs,
   requireSync: requireFsSync,
   writeFile,
@@ -430,6 +432,37 @@ describe('extra functions', () => {
     
   });
   
+  describe('readTreeWithSync', () => {
+    
+    beforeEach('write tree', async () => {
+      await writeTree('/', {
+        one: 'a',
+        two: 'aa',
+        three: 'aaa',
+        four: {
+          five: 'aaaaa',
+          six: { seven: 'aaaaaaa' },
+        },
+      }, fs);
+    });
+    
+    it('should determine object values with pred', () => {
+      const tree = readTreeWithSync(fileSizeSync, '/', fs);
+
+      expect(tree).to.eql({
+        one: 1,
+        two: 2,
+        three: 3,
+        four: {
+          five: 5,
+          six: { seven: 7 },
+        },
+      });
+      
+    });
+    
+  });
+  
   describe('readTree', () => {
     
     beforeEach('write tree', async () => {
@@ -454,6 +487,36 @@ describe('extra functions', () => {
     
     it('should read recursively', async () => {
       const tree = await readTree('/', fs);
+      expect(tree.four.five).to.eql('6');
+      expect(tree.four.six).to.eql({ seven: '8' });
+    });
+    
+  });
+  
+  describe('readTreeSync', () => {
+    
+    beforeEach('write tree', async () => {
+      await writeTree('/', {
+        one: '1',
+        two: '2',
+        three: '3',
+        four: {
+          five: '6',
+          six: { seven: '8' },
+        },
+      }, fs);
+    });
+    
+    it('should read all files in a dir', () => {
+      const tree = readTreeSync('/', fs);
+
+      expect(tree.one).to.eql('1');
+      expect(tree.two).to.eql('2');
+      expect(tree.three).to.eql('3');
+    });
+    
+    it('should read recursively', () => {
+      const tree = readTreeSync('/', fs);
       expect(tree.four.five).to.eql('6');
       expect(tree.four.six).to.eql({ seven: '8' });
     });

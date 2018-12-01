@@ -1,6 +1,6 @@
 {
   "name": "funk-fs",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "engines": {
     "node": ">= 8.2"
   },
@@ -26,7 +26,8 @@
   "main": ".",
   "scripts": {
     "cover": "NODE_ENV=test nyc --check-coverage npm test -- --reporter=progress",
-    "init": "rm -rf ./node_modules && npm install",
+    "init": "rm -rf ./node_modules && npm ci",
+    "init:hard": "rm -rf ./node_modules && rm -f package-lock.json && npm install",
     "lint": "eslint --max-warnings=10 $(find . ! -path '*node_modules*' ! -path '*dist*' ! -path '*coverage*' -type f | egrep '[.]js?$')",
     "start": "node .",
     "test:watch": "NODE_ENV=test mocha --reporter=min --watch $(find . ! -path '*node_modules*' -name '*.test.js')",
